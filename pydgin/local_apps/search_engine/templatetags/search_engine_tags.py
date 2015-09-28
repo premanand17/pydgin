@@ -8,14 +8,10 @@ import re
 register = template.Library()
 
 
-@register.inclusion_tag('search_engine/search_engine_section.html')
-def show_search_engine():
+@register.inclusion_tag('search_engine/search_engine_section.html', takes_context=True)
+def show_search_engine(context):
     ''' Template inclusion tag to render search engine form. '''
-    return {'index': ElasticSettings.attrs().get('SEARCH').get('IDX_TYPES').keys()}
-
-
-HIGHLIGHT_HTML_TAGS = ['<strong>', '</strong>', '<div class="col-md-2 text-right">',
-                       '<div class="col-md-10">', '<div class="row">', '</div>']
+    return {'index': ElasticSettings.search_props(user=context['request'].user)['idx_keys']}
 
 
 @register.filter
@@ -25,18 +21,15 @@ def doc_highlight(doc):
     if not isinstance(doc, Document):
         return settings.TEMPLATE_STRING_IF_INVALID
 
-    html = ''
     if doc.highlight() is None:
         return ''
-    for key, values in doc.highlight().items():
-        html += \
-           '<div class="row"><div class="col-md-2 text-right"><strong>%s</strong></div><div class="col-md-10">' % key
-        for value in values:
-            html += '%s ' % value
-        html += '</div></div>'
 
-    split_tags = '|'.join(HIGHLIGHT_HTML_TAGS)
-    html_fragments = re.split('('+split_tags+')', html)
+    html_fragments = {}
+    for key, values in doc.highlight().items():
+        html_fragments[key] = []
+        for value in values:
+            v = re.split('(<strong>|</strong>)', value)
+            html_fragments[key].extend(v)
     return html_fragments
 
 
@@ -47,8 +40,3 @@ def doc_highlight_keys(doc):
     if doc.highlight() is None:
         return ''
     return doc.highlight().keys()
-
-
-@register.filter
-def doc_highlight_html_tags(doc):
-    return HIGHLIGHT_HTML_TAGS

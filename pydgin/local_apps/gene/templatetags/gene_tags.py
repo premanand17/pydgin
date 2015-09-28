@@ -43,4 +43,6 @@ def show_genesets_section(ens_id):
 
 @register.inclusion_tag('gene/phenotype_section.html')
 def show_phenotype_section(dbxrefs):
-    return {'mgi': dbxrefs['orthologs']['mmusculus']['MGI']}
+    if 'mmusculus' in dbxrefs['orthologs']:
+        return {'mgi': dbxrefs['orthologs']['mmusculus']['MGI']}
+    return {}

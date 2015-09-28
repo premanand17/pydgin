@@ -6,4 +6,3 @@ urlpatterns = [
         url(r'^$', views.search_page, name='search_page'),
         url(r'^suggest$', views.suggester, name='suggester'),
     ]
-

@@ -1,5 +1,6 @@
 (function( search_engine, $, undefined ) { 
 
+	// auto-completion for search engine
 	search_engine.autocomplete = function (searchId) {
 		$( "#" + searchId ).autocomplete({
 	        source: function( request, response ) {
@@ -29,4 +30,12 @@
 	      });
 	}
 
+	// show / hide biotype panel
+	search_engine.toggle_biotype = function (cat) {
+	    if(cat === 'gene') {
+	    	$('#biotypes').show();
+	    } else {
+	    	$('#biotypes').hide();
+	    }
+	}
 }( window.search_engine = window.search_engine || {}, jQuery ));
