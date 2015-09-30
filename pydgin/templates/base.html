@@ -18,14 +18,17 @@
     <![endif]-->
     
     <script type="text/javascript" src="//code.jquery.com/jquery-2.1.4.min.js"></script>
+    {% block header_js %}{% endblock %}
     <link rel="stylesheet" href="//code.jquery.com/ui/1.11.4/themes/smoothness/jquery-ui.css">
-
+    {% block header_css %}{% endblock %}
+    
     {% block header %}{% endblock %}
 
     {% load staticfiles %}
     <link rel="stylesheet" href="{% static "css/pydgin.css" %}">
     <script src="{% static "js/pydgin_utils.js" %}" charset="utf-8"></script>
     <script src="{% static "search_engine/search_engine.js" %}" charset="utf-8"></script>
+    
 
     <script language="javascript" type="text/javascript">
 		$(document).ready(function(){
