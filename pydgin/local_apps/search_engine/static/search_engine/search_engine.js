@@ -38,4 +38,14 @@
 	    	$('#biotypes').hide();
 	    }
 	}
+	
+	// show / hide category filters and biotype
+	search_engine.toggle_category = function (active_cat) {
+		$('#categories > li').each(function( index ) {
+			 var cat = $( this ).attr('id');
+			 $('#'+cat.replace("bucket", "filter")).hide();
+		 });
+		 search_engine.toggle_biotype(active_cat);
+		 $('#filter-'+active_cat).show();
+	};
 }( window.search_engine = window.search_engine || {}, jQuery ));

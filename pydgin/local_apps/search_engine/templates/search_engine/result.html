@@ -1,34 +1,39 @@
 {% extends "base.html" %}
 {% block title %}{{ query }}{% endblock %}
-
 {% block header %}
 <script>
 $(document).ready(function() {
-	var cat = $('#categories > li.active').attr('id');
-	search_engine.toggle_biotype(cat.replace('bucket-', ''));
-	
 	// set dropdown list to idx selected
 	$('#idx').val("{{ idx_name}}");
 	
-	$('#'+cat.replace("bucket", "filter")).show();
+	// event handlers
 	$('#categories').on( "click", "li", function(event) {
-	    event.preventDefault();
-	    $('#categories > li').each(function( index ) {
-	    	var cat = $( this ).attr('id');
-	    	$('#'+cat.replace("bucket", "filter")).hide();
-	    });
-	    var cat = $( this ).attr('id');
-	    search_engine.toggle_biotype(cat.replace('bucket-', ''));
-	    $('#'+cat.replace("bucket", "filter")).show();
+	    var cat = $(this).attr('id').replace('bucket-', '');
+	    search_engine.toggle_category(cat);
 	});
-	
-	$('#advanced-filters').on( "click", "input", function(event) {
-		$( "#search-form" ).submit();
+
+	$('#advanced-filters,#biotypes').on( "click", "input", function(event) {
+		$("#search-form").submit();
 	});
-	$('#biotypes').on( "click", "input", function(event) {
-		$( "#search-form" ).submit();
+	$('#maxsize').on( "change", function(event) {
+		$("#search-form").submit();
 	});
-});    
+
+	$('a[data-toggle="pill"]').on('shown.bs.tab', function (e) {
+		// save the latest tab in local storage
+		localStorage.setItem('searchLastTab', $(this).attr('href'));
+	});
+
+	// go to the latest tab, if it exists:
+	 var lastTab = localStorage.getItem('searchLastTab');
+	 if (lastTab) {
+		 $('[href="' + lastTab + '"]').tab('show');
+		 search_engine.toggle_category(lastTab.replace('#', ''));
+	 } else {
+		 var cat = $('#categories > li.active').attr('id').replace('bucket-', '');
+		 search_engine.toggle_category(cat);
+	 }
+});
 </script>
 {% endblock %}
 
@@ -44,12 +49,12 @@ $(document).ready(function() {
 </div>
 
 {% if not data %}
-No results found for <strong>{{ query }}</strong>.
+<p>No results found for <strong>{{ query }}</strong>.</p>
 {% endif %}
 <div class="row">
 <div class="col-md-3">
 	<!-- INDEX CATEGORIES -->
-	<br/>
+	<p>&nbsp;</p>
 	<div>
 		<ul id="categories" class="nav nav-pills nav-stacked">
 		{% for data_key, data_val in data.items|sort %}
@@ -116,19 +121,31 @@ No results found for <strong>{{ query }}</strong>.
 
 <!-- HITS -->
 <div class="col-md-9">
+<div class="pull-right form-inline">
+	<label>Max Hits:</label>
+	<select id="maxsize" name="maxsize" class="form-control input-sm" form="search-form">
+		<option value="20" {% if maxsize == 20 %}selected="selected"{% endif %}>20</option>
+		<option value="50" {% if maxsize == 50 %}selected="selected"{% endif %}>50</option>
+		<option value="100" {% if maxsize == 100 %}selected="selected"{% endif %}>100</option> 
+	</select>
+</div>
+
 <div class="tab-content">
 {% for data_key, data_val in data.items|sort %}
 	<div id="{{ data_key }}" class="tab-pane fade in {% if forloop.counter == 1 %}active{% endif %}">
 	{% for doc in data_val.docs %}
 		{% if forloop.counter == 1 %}
-			{{ data_val.docs|length }} of {{ data_val.doc_count }} hit(s) for '{{ query }}':<br />
+		<p>{{ data_val.docs|length }} of {{ data_val.doc_count }} hit(s) for '{{ query }}':</p>
 		{% endif %}
+
 		<div class="panel panel-default"><div class="panel-body">
   		<div class="row"> <!-- panel row -->
 		<div class="col-md-2 col-lg-1">
 			<h4 style="margin-top: 0"><span class="label label-success">{{ doc|doc_type }}</span></h4>
 			{% if doc|doc_type == 'gene' %}
-				<strong><a href="/gene/?g={{ doc|doc_id }}">{{ doc|doc_attr:"symbol" }}</a></strong>
+				<span style="white-space: nowrap;"><strong><a href="/gene/?g={{ doc|doc_id }}">{{ doc|doc_attr:"symbol" }}</a></strong></span>
+			{% elif doc|doc_type == 'marker' %}
+				<span style="white-space: nowrap;"><strong><a href="/marker/?m={{ doc|doc_attr:"id" }}">{{ doc|doc_attr:"id" }}</a></strong></span>			
 			{% elif doc|doc_type == 'publication' %}
 				<strong><a href="http://www.ncbi.nlm.nih.gov/pubmed/{{ doc|doc_attr:"pmid" }}" target="_blank">PMID:{{ doc|doc_attr:"pmid" }}</a></strong>
 			{% else %}
@@ -160,7 +177,13 @@ No results found for <strong>{{ query }}</strong>.
 				{% if key != "_meta" and key not in doc|doc_highlight_keys %}
 					<div class="row"> <!-- details row -->
 					    <div class="col-sm-2 col-xs-3 text-right"><strong>{{ key }}</strong></div>
-						<div class="col-sm-10 col-xs-9">{{ doc|doc_attr:key }}</div>
+					    <div class="col-sm-10 col-xs-9">
+					    {% if key == 'dbxrefs' %}
+						    Ensembl:{{ doc|doc_attr:key|get_item:'ensembl' }}; Entrez:{{ doc|doc_attr:key|get_item:'entrez' }}
+					    {% else %}
+							{{ doc|doc_attr_str:key }}
+						{%endif %}
+						</div>
 					</div>
 				{% endif %}
 			{% endfor %}

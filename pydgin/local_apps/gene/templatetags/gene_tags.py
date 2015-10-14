@@ -21,10 +21,17 @@ def is_list(val):
 
 
 @register.inclusion_tag('gene/pub_section.html')
-def show_pub_section(pmids):
+def show_pub_section(gene):
     ''' Template inclusion tag to render a publication section given a
     list of PMIDs. '''
-    return {'pmids': pmids}
+    return {'gene': gene}
+
+
+@register.inclusion_tag('gene/studies_section.html')
+def show_studies_section(ens_id):
+    ''' Template inclusion tag to render an studies section given a
+    ensembl ID. '''
+    return {'ens_id': ens_id}
 
 
 @register.inclusion_tag('gene/interactions_section.html')
@@ -46,3 +53,15 @@ def show_phenotype_section(dbxrefs):
     if 'mmusculus' in dbxrefs['orthologs']:
         return {'mgi': dbxrefs['orthologs']['mmusculus']['MGI']}
     return {}
+
+
+@register.filter
+def div(value, divisor):
+    ''' Divides the value by divisor. '''
+    try:
+        value = int(value)
+        divisor = int(divisor)
+        return int(value/divisor)
+    except:
+        pass
+    return ''

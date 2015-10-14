@@ -3,13 +3,14 @@ from django.shortcuts import render
 from elastic.search import Search, ElasticQuery, Highlight, Suggest
 from elastic.aggs import Agg, Aggs
 from elastic.elastic_settings import ElasticSettings
-from elastic.query import Query, Filter, BoolQuery
+from elastic.query import Query, Filter, BoolQuery, ScoreFunction, FunctionScoreQuery,\
+    FilteredQuery
 from django.http.response import JsonResponse
 from django.template.context_processors import csrf
 
 
 def suggester(request):
-    ''' Auto suggester. '''
+    ''' Provide auto suggestions. Ajax request returning a JSON response. '''
     query_dict = request.GET
     idx_dict = ElasticSettings.search_props(query_dict.get("idx"), request.user)
     suggester = ','.join(ElasticSettings.idx(k) for k in idx_dict['suggester_keys'])
@@ -36,6 +37,9 @@ def _search_engine(query_dict, user_filters, user):
     source_filter = ['symbol', 'synonyms', "dbxrefs.*", 'biotype', 'description',
                      'pathway_name', 'id', 'journal', 'rscurrent', 'name', 'code']
     search_fields = []
+    maxsize = 20
+    if user_filters.getlist("maxsize"):
+        maxsize = int(user_filters.get("maxsize"))
 
     # build search_fields from user input filter fields
     for it in user_filters.items():
@@ -58,13 +62,24 @@ def _search_engine(query_dict, user_filters, user):
     query_filters = _get_query_filters(user_filters, user)
 
     highlight = Highlight(search_fields, pre_tags="<strong>", post_tags="</strong>", number_of_fragments=0)
-    sub_agg = Agg('idx_top_hits', 'top_hits', {"size": 20, "_source": source_filter,
+    sub_agg = Agg('idx_top_hits', 'top_hits', {"size": maxsize, "_source": source_filter,
                                                "highlight": highlight.highlight['highlight']})
     aggs = Aggs([Agg("idxs", "terms", {"field": "_index"}, sub_agg=sub_agg),
                  Agg("biotypes", "terms", {"field": "biotype", "size": 0}),
                  Agg("categories", "terms", {"field": "_type", "size": 0})])
-    search = ElasticQuery.query_string(query, fields=search_fields, query_filter=query_filters)
-    elastic = Search(search_query=search, aggs=aggs, search_type=True,
+
+    ''' create function score query to return documents with greater weights '''
+#     score_filter = ExistsFilter('tags.weight')
+    score_function1 = ScoreFunction.create_score_function('field_value_factor', field='tags.weight', missing=1.0)
+#     terms_filter = TermsFilter.get_missing_terms_filter("field", "tags.weight")
+#     score_function2 = ScoreFunction.create_score_function('weight', 1, function_filter=terms_filter.filter)
+    if query_filters is None:
+        equery = Query.query_string(query, fields=search_fields)
+    else:
+        equery = FilteredQuery(Query.query_string(query, fields=search_fields), query_filters)
+    search_query = ElasticQuery(FunctionScoreQuery(equery, [score_function1], boost_mode='replace'))
+
+    elastic = Search(search_query=search_query, aggs=aggs, search_type=True,
                      idx=idx_dict['idx'], idx_type=idx_dict['idx_type'])
     result = elastic.search()
 
@@ -75,7 +90,8 @@ def _search_engine(query_dict, user_filters, user):
     return {'data': _top_hits(result), 'aggs': result.aggs,
             'query': query, 'idx_name': idx_name,
             'fields': search_fields, 'mappings': mappings,
-            'hits_total': result.hits_total}
+            'hits_total': result.hits_total,
+            'maxsize': maxsize}
 
 
 def _top_hits(result):
