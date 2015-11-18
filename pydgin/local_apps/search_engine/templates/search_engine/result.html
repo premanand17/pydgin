@@ -26,7 +26,7 @@ $(document).ready(function() {
 
 	// go to the latest tab, if it exists:
 	 var lastTab = localStorage.getItem('searchLastTab');
-	 if (lastTab) {
+	 if (lastTab && $('[href="' + lastTab + '"]').length) {
 		 $('[href="' + lastTab + '"]').tab('show');
 		 search_engine.toggle_category(lastTab.replace('#', ''));
 	 } else {

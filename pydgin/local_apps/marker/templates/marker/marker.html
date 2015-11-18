@@ -1,0 +1,18 @@
+{% extends "base.html" %}
+{% block content %}
+{% load filter_tags %}
+<div class="panel panel-info">
+	<div class="panel-heading"><h3 class="panel-title">Marker Summary</a></h3></div>
+	<div class="panel-body">
+	<table class="table table-striped table-condensed">
+		<tr><td>ID  </td><td>{{ marker|doc_attr:"id" }}</td></tr>
+		<tr><td>REF </td><td>{{ marker|doc_attr:"ref" }}</td></tr>
+		<tr><td>ALT </td><td>{{ marker|doc_attr:"alt" }}</td></tr>
+		<tr><td>Location  </td><td>
+		{% with loc=marker|doc_attr:"seqid" %}
+			chr{{ loc }}: {{ marker|doc_attr:"start" }}
+		{% endwith %}
+		</td></tr>
+	</table>
+	</div></div>
+{% endblock %}

@@ -6,6 +6,7 @@ from elastic.elastic_settings import ElasticSettings
 from django.views.decorators.csrf import ensure_csrf_cookie
 from django.http import Http404
 from django.contrib import messages
+from django.conf import settings
 
 
 @ensure_csrf_cookie
@@ -140,3 +141,11 @@ def _get_pub_docs_by_pmid(pmids, sources=None):
     query = ElasticQuery(Query.ids(pmids), sources=sources)
     elastic = Search(query, idx=ElasticSettings.idx('PUBLICATION'), size=len(pmids))
     return {doc.doc_id(): doc for doc in elastic.search().docs}
+
+
+@ensure_csrf_cookie
+def js_test(request):
+    ''' Renders a gene page. '''
+    if not settings.DEBUG:
+        raise Http404()
+    return render(request, 'js_test/test.html', {}, content_type='text/html')

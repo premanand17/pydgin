@@ -7,6 +7,9 @@ from elastic.query import Query, Filter, BoolQuery, ScoreFunction, FunctionScore
     FilteredQuery
 from django.http.response import JsonResponse
 from django.template.context_processors import csrf
+import logging
+
+logger = logging.getLogger(__name__)
 
 
 def suggester(request):
@@ -35,7 +38,8 @@ def _search_engine(query_dict, user_filters, user):
     ''' Carry out a search and add results to the context object. '''
     query = query_dict.get("query")
     source_filter = ['symbol', 'synonyms', "dbxrefs.*", 'biotype', 'description',
-                     'pathway_name', 'id', 'journal', 'rscurrent', 'name', 'code']
+                     'pathway_name', 'id', 'journal', 'rscurrent', 'name', 'code',
+                     'region_name', 'rshigh']
     search_fields = []
     maxsize = 20
     if user_filters.getlist("maxsize"):
@@ -69,17 +73,28 @@ def _search_engine(query_dict, user_filters, user):
                  Agg("categories", "terms", {"field": "_type", "size": 0})])
 
     ''' create function score query to return documents with greater weights '''
-#     score_filter = ExistsFilter('tags.weight')
-    score_function1 = ScoreFunction.create_score_function('field_value_factor', field='tags.weight', missing=1.0)
-#     terms_filter = TermsFilter.get_missing_terms_filter("field", "tags.weight")
-#     score_function2 = ScoreFunction.create_score_function('weight', 1, function_filter=terms_filter.filter)
-    if query_filters is None:
-        equery = Query.query_string(query, fields=search_fields)
-    else:
-        equery = FilteredQuery(Query.query_string(query, fields=search_fields), query_filters)
-    search_query = ElasticQuery(FunctionScoreQuery(equery, [score_function1], boost_mode='replace'))
+    scores = [ScoreFunction.create_score_function('field_value_factor', field='tags.weight', missing=1.0)]
+    ''' create a function score that increases the score of markers. '''
+    if ElasticSettings.idx('MARKER') in idx_dict['idx']:
+        type_filter = Filter(Query({"type": {"value": ElasticSettings.get_idx_types('MARKER')['MARKER']['type']}}))
+        scores.append(ScoreFunction.create_score_function('weight', 2, function_filter=type_filter.filter))
+        logger.debug("Add marker type score funtion.")
 
-    elastic = Search(search_query=search_query, aggs=aggs, search_type=True,
+    if ElasticSettings.version()['major'] < 2:
+        # deprecated version
+        if query_filters is None:
+            equery = Query.query_string(query, fields=search_fields)
+        else:
+            equery = FilteredQuery(Query.query_string(query, fields=search_fields), query_filters)
+    else:
+        equery = Query.query_string(query, fields=search_fields)
+        if query_filters is None:
+            equery = BoolQuery(b_filter=Filter(equery))
+        else:
+            equery = BoolQuery(must_arr=equery, b_filter=query_filters)
+
+    search_query = ElasticQuery(FunctionScoreQuery(equery, scores, boost_mode='replace'))
+    elastic = Search(search_query=search_query, aggs=aggs, size=0,
                      idx=idx_dict['idx'], idx_type=idx_dict['idx_type'])
     result = elastic.search()
 
@@ -91,7 +106,7 @@ def _search_engine(query_dict, user_filters, user):
             'query': query, 'idx_name': idx_name,
             'fields': search_fields, 'mappings': mappings,
             'hits_total': result.hits_total,
-            'maxsize': maxsize}
+            'maxsize': maxsize, 'took': result.took}
 
 
 def _top_hits(result):
@@ -101,9 +116,23 @@ def _top_hits(result):
     for idx in idx_names:
         idx_key = ElasticSettings.get_idx_key_by_name(idx)
         if idx_key.lower() != idx:
+            if idx_key.lower() == 'marker':
+                top_hits[idx]['doc_count'] = _collapse_marker_docs(top_hits[idx]['docs'])
             top_hits[idx_key.lower()] = top_hits[idx]
             del top_hits[idx]
     return top_hits
+
+
+def _collapse_marker_docs(docs):
+    ''' If the rsid document exists ignore results from immunochip and rs_merge
+    for the same marker. '''
+    rsids = [getattr(doc, 'id') for doc in docs if doc.type() == 'marker']
+    rm_docs = [doc for doc in docs
+               if doc.type() != 'marker' and (getattr(doc, 'id') in rsids or
+                                              getattr(doc, 'rscurrent') in rsids)]
+    for doc in rm_docs:
+        docs.remove(doc)
+    return len(docs)
 
 
 def _get_query_filters(q_dict, user):
@@ -117,7 +146,7 @@ def _get_query_filters(q_dict, user):
 
     query_bool = BoolQuery()
     if q_dict.getlist("biotypes"):
-        query_bool.should(Query.terms("biotype", q_dict.getlist("biotypes"), minimum_should_match=0))
+        query_bool.should(Query.terms("biotype", q_dict.getlist("biotypes")))
         type_filter = [Query.query_type_for_filter(ElasticSettings.search_props(c.upper(), user)['idx_type'])
                        for c in q_dict.getlist("categories") if c != "gene"]
         if len(type_filter) > 0:

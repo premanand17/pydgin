@@ -7,7 +7,9 @@
 <script src="//cdn.datatables.net/1.10.8/js/jquery.dataTables.min.js"></script>
 <script src="//cdn.datatables.net/responsive/1.0.7/js/dataTables.responsive.min.js"></script>
 <script src="//cdn.datatables.net/1.10.8/js/dataTables.bootstrap.min.js"></script>
-<script src="/static/gene/gene_page.js"></script>
+
+{% load staticfiles %}
+<script src={% static "gene/gene_page.js" %}></script>
 <script language="javascript" type="text/javascript">
 $(document).ready(function() {
 	$('.panel-body.collapse').each(function(){

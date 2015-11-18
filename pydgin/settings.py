@@ -43,12 +43,14 @@ INSTALLED_APPS = (
     'elastic',
     'search_engine',
     'gene',
+    'marker',
     'disease',
     'rest_framework',
     'rest_framework_swagger',
     'rest_framework.authtoken',
     'pydgin_auth',
     'auth_test',
+    'mod_wsgi.server',
 )
 
 MIDDLEWARE_CLASSES = (
@@ -61,7 +63,6 @@ MIDDLEWARE_CLASSES = (
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'django.middleware.security.SecurityMiddleware',
     # 'pydgin_auth.login_required_middleware.LoginRequiredMiddleware',
-
 )
 
 ROOT_URLCONF = 'pydgin.urls'
@@ -146,6 +147,8 @@ STATICFILES_DIRS = (
 )
 STATIC_ROOT = os.path.join(PROJECT_DIR, 'apache')
 
+if not DEBUG:
+    STATICFILES_STORAGE = 'django.contrib.staticfiles.storage.ManifestStaticFilesStorage'
 
 # writes all request logging from the django.request logger to a local file
 LOG_FILE = os.path.join(BASE_DIR, 'log/pydgin.log')

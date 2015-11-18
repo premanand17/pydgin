@@ -15,25 +15,22 @@ Including another URLconf
 """
 from django.conf.urls import include, url
 from django.contrib import admin
+from pydgin import views, rest_api
 from rest_framework import routers
 from rest_framework.authtoken.views import obtain_auth_token
-from pydgin import views
-from elastic.rest_framework.api import PublicationViewSet, DiseaseViewSet,\
-    MarkerViewSet
+from django.conf import settings
 
 # restful framework
 router = routers.DefaultRouter()
-router.register(r'pubs', PublicationViewSet, base_name='pubs')
-router.register(r'disease', DiseaseViewSet, base_name='disease')
-router.register(r'marker', MarkerViewSet, base_name='marker')
-
+router.register(r'pubs', rest_api.PublicationViewSet, base_name='pubs')
 
 urlpatterns = [
-    url(r'^admin/', include(admin.site.urls)),
+    url(r'^{}/admin/'.format(settings.ADMIN_URL_PATH), include(admin.site.urls)),
     url(r'^accounts/', include('pydgin_auth.urls', namespace="accounts")),
     url(r'^$', views.index, name='index'),
     url(r'^search/', include('search_engine.urls')),
     url(r'^gene/', include('gene.urls')),
+    url(r'^marker/', include('marker.urls')),
     url(r'^rest/', include(router.urls, namespace="rest")),
     url(r'^rest-docs/', include('rest_framework_swagger.urls')),
     url(r'^api-token-auth/', obtain_auth_token),
