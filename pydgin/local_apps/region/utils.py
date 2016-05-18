@@ -13,6 +13,25 @@ class Region(object):
     '''
 
     @classmethod
+    def get_immune_snps(cls, hit_docs):
+        ''' Given a list of hits returns details of markers inc. pos, study'''
+        disease_markers = {}
+        markers = list(set([h.marker for h in hit_docs]))
+        for h in hit_docs:
+            print(h.__dict__)
+        
+        query = ElasticQuery(Query.terms("id", markers), sources=['id', 'alt', 'ref', 'seqid', 'start'])
+        marker_docs = Search(search_query=query, idx=ElasticSettings.idx('MARKER', 'MARKER'),
+                             size=len(markers)).search().docs
+        m_lookup = {}
+        for m in marker_docs:
+            m_lookup[getattr(m, "id")] = {
+                'seqid': getattr(m, "seqid"),
+                'start': getattr(m, "start")
+            }
+        return disease_markers
+
+    @classmethod
     def loci_to_regions(cls, disease_loci):
         ''' Returns the region docs for requested disease_locus ids '''
         regions_idx = ElasticSettings.idx('REGION', 'REGION')
@@ -27,6 +46,18 @@ class Region(object):
     def hits_to_regions(cls, docs):
         ''' Returns the region docs for given hit docs '''
         return cls.loci_to_regions([getattr(doc, "disease_locus").lower() for doc in docs])
+
+    @classmethod
+    def hits_to_loci(cls, docs):
+        ''' Returns the disease loci for requested hit docs '''
+        regions_idx = ElasticSettings.idx('REGION', 'DISEASE_LOCUS')
+        disease_loci = [getattr(doc, "disease_locus") for doc in docs]
+        if len(disease_loci) == 0:
+            logger.warning("no disease_locus attributes found/given")
+            return
+        resultObj = Search(search_query=ElasticQuery(Query.ids(disease_loci)),
+                           idx=regions_idx).search()
+        return resultObj.docs
 
     @classmethod
     def pad_region_doc(cls, region):

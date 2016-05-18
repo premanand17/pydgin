@@ -8,6 +8,7 @@
 <!-- <link rel="stylesheet" type="text/css" href="//igv.org/web/beta/igv-beta.css"> -->
 <!-- <link rel="stylesheet" type="text/css" href="{% static "css/igv-beta.css" %}"> -->
 <link rel="stylesheet" type="text/css" href="{% static "css/igv-0.9.3.css" %}">
+<link rel="stylesheet" type="text/css" href="{% static "browser/css/pydgin-igv.css" %}">
 {% endblock %}
 
 {% block footer_js %}
@@ -21,7 +22,13 @@
 		function switch_genomes(){
 			genome = $("#genomeSelect").val()
 			window.location.href = "/browser/"+genome;
-		}	
+		}
+		
+		function semanticZoom(){
+			browser = igv.browser;
+			console.log("here")
+			console.log(browser)
+		}
 	
 		$(document).ready(function() {		
 		    var div, options, browser;
@@ -60,6 +67,15 @@
 				],
 		    };
 		    browser = igv.createBrowser(div, options);
+		    
+		    browser.searchInput.change(function () {
+				console.log("searchInput changed")
+				semanticZoom();
+            });
+		 	
+		    //console.log(browser)
+		    //browser.loadTrack({format: 'vcf', url: '/static/data/igv/hg38/dbsnp146-b38-All.vcf.gz', visibilityWindow: 5000, label: 'Markers (dbSNP)'})
+		    
 		} );
 	</script>
 {% endblock %}

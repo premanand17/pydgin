@@ -1,10 +1,13 @@
 ''' Generic documents based on elasticsearch documents. '''
-from elastic.result import Document
-from elastic.elastic_settings import ElasticSettings
-from django.utils.module_loading import import_string
-from pydgin import pydgin_settings
+import locale
+
 from django.conf import settings
+from django.utils.module_loading import import_string
+from elastic.elastic_settings import ElasticSettings
 from elastic.query import Query
+from elastic.result import Document
+
+from pydgin import pydgin_settings
 
 
 class PydginDocument(Document):
@@ -23,6 +26,7 @@ class PydginDocument(Document):
 
         doc_class_str = ElasticSettings.get_label(idx, idx_type, label='class')
         doc_class = import_string(doc_class_str) if doc_class_str is not None else None
+
         return doc_class(hit) if doc_class is not None else PydginDocument(hit)
 
     def get_name(self):
@@ -83,7 +87,25 @@ class FeatureDocument(PydginDocument, ResultCardMixin):
         @type  build: integer
         @keyword build: NCBI build to return position for.
          '''
-        raise NotImplementedError("Inheriting class should implement this method")
+        return ("chr" + getattr(self, "seqid") +
+                ":" + str(locale.format("%d",  getattr(self, "start"), grouping=True)) +
+                "-" + str(locale.format("%d", getattr(self, "stop"), grouping=True)))
+        # raise NotImplementedError("Inheriting class should implement this method")
+
+    def get_name(self):
+        return getattr(self, "name")
+
+    def get_strand_as_int(self):
+        '''
+        Generic method to return strand of a feature as -1/0/1 nomenclature.
+         '''
+        if hasattr(self, "strand") and getattr(self, 'strand') is not None:
+            strand = getattr(self, 'strand')
+            if strand == '+':
+                return 1
+            if strand == '-':
+                return -1
+        return 0
 
 
 class PublicationDocument(PydginDocument, ResultCardMixin):

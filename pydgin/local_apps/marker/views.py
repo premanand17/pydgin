@@ -10,7 +10,7 @@ from django.views.generic.base import TemplateView
 from elastic.aggs import Agg, Aggs
 from elastic.elastic_settings import ElasticSettings
 from elastic.exceptions import SettingsError
-from elastic.query import Query
+from elastic.query import Query, BoolQuery, RangeQuery
 from elastic.result import Document
 from elastic.search import ElasticQuery, Search, ScanAndScroll
 
@@ -121,6 +121,8 @@ def association_stats(request, sources=None):
     ''' Get association statistics for a given marker ID. '''
     seqid = request.GET.get('chr').replace('chr', '')
     idx_type = request.GET.get('idx_type').upper()
+    start = request.GET.get('start')
+    end = request.GET.get('end')
     data = []
 
     def get_stats(resp_json):
@@ -135,6 +137,10 @@ def association_stats(request, sources=None):
             })
 
     query = ElasticQuery(Query.query_string(seqid, fields=["seqid"]), sources=sources)
+    if start is not None and end is not None:
+        query = ElasticQuery(BoolQuery(must_arr=[Query.query_string(seqid, fields=["seqid"]),
+                                                 RangeQuery("position", gte=start, lte=end)]), 
+                             sources=sources)
     ScanAndScroll.scan_and_scroll(ElasticSettings.idx('IC_STATS', idx_type), call_fun=get_stats, query=query)
 
     json = {"variants": data}

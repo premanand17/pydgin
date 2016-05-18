@@ -1,17 +1,24 @@
 import locale
+import logging
 import sys
 
+from criteria.helper.criteria import Criteria
 from django.conf import settings
 from django.core.urlresolvers import reverse
-
-from core.document import FeatureDocument, PydginDocument
-from criteria.helper.criteria import Criteria
 from elastic.elastic_settings import ElasticSettings
-from elastic.query import Query, BoolQuery, Filter
+from elastic.query import Query, BoolQuery, Filter, RangeQuery, OrFilter, \
+    FilteredQuery
+from elastic.rest_framework.elastic_obj import ElasticObject
 from elastic.result import Document
 from elastic.search import ElasticQuery, Search
+
+from core.document import FeatureDocument, PydginDocument
 from gene import utils
 from pydgin import pydgin_settings
+from region.utils import Region
+
+
+logger = logging.getLogger(__name__)
 
 
 class RegionDocument(FeatureDocument):
@@ -81,6 +88,17 @@ class RegionDocument(FeatureDocument):
             if new_highlight:
                 self.__dict__['_meta']['highlight'] = new_highlight
 
+    def get_disease_loci(self):
+        ''' Returns the disease loci for requested hit docs '''
+        regions_idx = ElasticSettings.idx('REGION', 'DISEASE_LOCUS')
+        disease_loci = getattr(self, "disease_loci")
+        if len(disease_loci) == 0:
+            logger.warning("no disease_locus attributes found/given")
+            return
+        resultObj = Search(search_query=ElasticQuery(Query.ids(disease_loci)),
+                           idx=regions_idx).search()
+        return resultObj.docs
+
     @classmethod
     def get_hits_by_study_id(cls, study_id, sources=[]):
         ''' Get visible/authenticated hits. '''
@@ -108,11 +126,83 @@ class RegionDocument(FeatureDocument):
         return docs
 
 
-class StudyHitDocument(PydginDocument):
-    ''' An extension of a PydginDocument for a Study Hit. '''
+class StudyHitDocument(FeatureDocument):
+    ''' An extension of a FeatureDocument for a Study Hit. '''
 
     def get_name(self):
         return getattr(self, "chr_band")
+
+    def get_position(self, build=pydgin_settings.DEFAULT_BUILD):
+        build_info = getattr(self, "build_info")
+        for b in build_info:
+            if b['build'] == build:
+                return ("chr" + b['seqid'] + ":" + str(locale.format("%d", b['start'], grouping=True)) +
+                        "-" + str(locale.format("%d", b['end'], grouping=True)))
+        return None
+
+    @classmethod
+    def get_overlapping_hits(self, build, seqid, start, end):
+        query_bool = BoolQuery(must_arr=[RangeQuery("build_info.start", lte=start),
+                                         RangeQuery("build_info.end", gte=end)])
+        or_filter = OrFilter(RangeQuery("build_info.start", gte=start, lte=end))
+        or_filter.extend(RangeQuery("build_info.end", gte=start, lte=end)) \
+                 .extend(query_bool)
+        range_query = FilteredQuery(BoolQuery(must_arr=[Query.term("build_info.seqid", seqid),
+                                                        Query.term("build_info.build", build)]),
+                                    or_filter)
+
+        query = ElasticQuery.filtered_bool(
+            Query.nested("build_info", range_query),
+            BoolQuery(must_arr=[RangeQuery("tier", lte=2)]),
+            # sources=["disease", "marker", "chr_band", "tier", "build_info", "disease_locus"]
+            )
+        elastic = Search(search_query=query, idx=ElasticSettings.idx('REGION', 'STUDY_HITS'))
+        return elastic.search().docs
+
+    @classmethod
+    def get_overlapping_features(self, build, seqid, start, end):
+
+        features = []
+        study_hits = self.get_overlapping_hits(build, seqid, start, end)
+        if len(study_hits) == 0:
+            return features
+
+        regions = Region.hits_to_regions(study_hits)
+        for doc in regions:
+            doc = Region.pad_region_doc(doc)
+            loc = doc.get_position(build=build).split(':')
+            pos = loc[1].replace(',', '').split('-')
+            feature = {
+                'name': doc.get_name(),
+                'id': doc.doc_id(),
+                'chr': loc[0],
+                'start': int(pos[0]),
+                'end': int(pos[1]) if len(pos) > 1 else int(pos[0]),
+                'strand': doc.get_strand_as_int(),
+                'attributes': {}
+            }
+            loci = doc.get_disease_loci()
+            sub_features = []
+            for locus in loci:
+                attributes = {}
+                loc = locus.get_position(build=build).split(':')
+                pos = loc[1].replace(',', '').split('-')
+                sub_feature = {
+                    'name': locus.get_name(),
+                    'id': locus.doc_id(),
+                    'chr': loc[0],
+                    'start': int(pos[0]),
+                    'end': int(pos[1]) if len(pos) > 1 else int(pos[0]),
+                    'strand': locus.get_strand_as_int()
+                }
+                if hasattr(locus, "disease") and getattr(locus, "disease") is not None:
+                    attributes['disease'] = getattr(locus, "disease")
+                sub_feature['attributes'] = attributes
+                sub_features.append(sub_feature)
+            feature['sub_features'] = sub_features
+            features.append(ElasticObject(feature))
+
+        return features
 
     @classmethod
     def process_hits(cls, docs, diseases):
@@ -172,7 +262,7 @@ class StudyHitDocument(PydginDocument):
         return docs
 
 
-class DiseaseLocusDocument(PydginDocument):
+class DiseaseLocusDocument(FeatureDocument):
 
     @classmethod
     def get_disease_loci_docs(cls, disease):
@@ -187,6 +277,16 @@ class DiseaseLocusDocument(PydginDocument):
         hits_query = ElasticQuery(BoolQuery(must_arr=Query.ids(hit_ids),
                                             b_filter=Filter(Query.missing_terms("field", "group_name"))))
         return Search(hits_query, idx=ElasticSettings.idx('REGION', 'STUDY_HITS'), size=len(hit_ids)).search().docs
+
+    def get_name(self):
+        return getattr(self, "region_name")
+
+    def get_position(self, build=pydgin_settings.DEFAULT_BUILD):
+        ''' Get position of disease locus '''
+        disease_locus = self.get_disease_region(build=build)
+        if disease_locus is not None:
+            return (disease_locus['seqid'] + ":" + disease_locus['start'] + "-" + disease_locus['end'])
+        return None
 
     def get_disease_region(self, visible_hits=None, build=pydgin_settings.DEFAULT_BUILD):
         ''' Get the disease region object by combining the hits. '''

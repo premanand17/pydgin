@@ -4539,6 +4539,8 @@ var igv = (function (igv) {
         this.trackViews.forEach(function (trackPanel) {
             trackPanel.update();
         });
+        
+        this.updateZoomLevels();
 
         if (this.cursorModel) {
             this.horizontalScrollbar.update();
@@ -4553,7 +4555,6 @@ var igv = (function (igv) {
             str,
             end,
             chromosome;
-
 
         if (this.searchInput) {
 
@@ -4573,6 +4574,13 @@ var igv = (function (igv) {
 
             this.windowSizePanel.update(Math.floor(end - referenceFrame.start));
         }
+
+    };
+
+    igv.Browser.prototype.updateZoomLevels = function () {
+    	//ELLEN
+    	$(this.trackContainerDiv).find("div.zoomed").each(function(){
+    	});
 
     };
 
@@ -19420,6 +19428,7 @@ var igv = (function (igv) {
         track.id = config.id || track.name;
         track.order = config.order;
         track.color = config.color || igv.constants.defaultColor;
+        track.zoom_level = config.zoom_level					// PYDGIN EDIT
 
         track.removable = (config.removable === undefined ? true : config.removable);      // Defaults to true
 
@@ -19993,21 +20002,37 @@ var igv = (function (igv) {
         var self = this,
             isMouseDown = undefined,
             lastScreenY = undefined,
-            xy;
+            xy,
+            xtra_class = '';
 
         this.track = track;
         this.browser = browser;
+        
+        //ELLEN
+//        console.log(this.browser)
+//        console.log(this.track)
+
+		if (this.browser.referenceFrame !== undefined && this.track.zoom_level !== undefined){
+			bp = this.browser.trackViewportWidthBP()
+			levels = this.track.zoom_level.split(':')
+			xtra_class = ' zoomed zoom-level-'+this.track.zoom_level
+			if ((levels[0] === '' || levels[0] < bp) && (levels[1] === '' || levels[1] > bp)){
+			}
+			else{
+				xtra_class += ' zoom-hide';
+			}
+		}
 
         if ("CURSOR" === browser.type) {
 
             this.cursorTrackContainer = $('<div class="igv-cursor-track-container">')[0];
             $(browser.trackContainerDiv).append(this.cursorTrackContainer);
 
-            this.trackDiv = $('<div class="igv-track-div">')[0];
+            this.trackDiv = $('<div class="igv-track-div'+xtra_class+'">')[0];
             $(this.cursorTrackContainer).append(this.trackDiv);
         } else {
 
-            this.trackDiv = $('<div class="igv-track-div">')[0];
+            this.trackDiv = $('<div class="igv-track-div'+xtra_class+'">')[0];
             $(browser.trackContainerDiv).append(this.trackDiv);
         }
 
@@ -22723,6 +22748,7 @@ var igv = (function (igv) {
         this.color = config.color || "rgb(150,150,150)";
         this.height = 100;
         this.order = config.order;
+        this.zoom_level = config.zoom_level
 
         // Min and max values.  No defaults for these, if they aren't set track will autoscale.
         this.min = config.min;

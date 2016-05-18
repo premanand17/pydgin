@@ -1,0 +1,184 @@
+{
+   "formatVersion" : 1,
+   "tracks" : [
+   	   
+      {
+         "chunkSize" : 20000,
+         "urlTemplate" : "seq/{refseq_dirpath}/{refseq}-",
+         "type" : "SequenceTrack",
+         "key" : "Reference sequence",
+         "storeClass" : "JBrowse/Store/Sequence/StaticChunked",
+         "label" : "DNA",
+         "category" : "Reference sequence"
+      },
+      {
+      	  "label" : "dbsnp146",
+      	  "key" : "Markers (dbSNP 146)",
+      	  "storeClass" : "PydginElastic/Store/SeqFeature/GenericFeature",
+      	  "urlTemplate" : "/rest/features/?format=json&ftype=marker&build=hg38&chr={refseq}&start={start}&end={end}",
+      	  "type" : "JBrowse/View/Track/CanvasVariants",
+      	  "style" : {
+      	  	  "showLabels": false
+      	  },
+      	  "onClick" : {
+      	  	  "url" : "/marker/{name}/",
+      	  	  "label" : "{name}",
+      	  	  "action" : "newWindow"
+      	  },
+      },
+      {
+      	  "category" : "General",
+      	  "key" : "Karyotype Bands",
+      	  "label" : "KaryotypeBands",
+      	  "type" : "JBrowse/View/Track/CanvasFeatures",
+      	  "storeClass" : "PydginElastic/Store/SeqFeature/GenericFeature",
+      	  "displayMode": "normal",
+      	  "style" : {
+      	  	  "color" : "function(feature) { if(feature.get('stain') == 'gpos100') { return 'black' } if(feature.get('stain') == 'tip') { return 'darkslategray' } if(feature.get('stain') == 'gpos75') { return 'slategray' } if(feature.get('stain') == 'gpos50') { return 'dimgray' } if(feature.get('stain') == 'gpos25') { return 'lightgrey' } if(feature.get('stain') == 'gpos') { return 'black' } if(feature.get('stain') == 'gvar') { return 'snow' } if(feature.get('stain') == 'gneg') { return 'white' } if(feature.get('stain') == 'acen') { return 'darkslategray' } if(feature.get('stain') == 'stalk') { return 'darkslategray' } }",
+      	  	  "label" : "id",
+      	  	  "borderColor" : "black",
+      	  	  "mouseovercolor": "rgba(0,0,0,0)",
+      	  },
+      	  "urlTemplate" : "/rest/features/?format=json&ftype=band&build=hg38&chr={refseq}&start={start}&end={end}",
+      	  "compress" : 0,
+      },
+      {
+      	  "category" : "Gene Models",
+      	  "key" : "Gene Spans",
+      	  "label" : "GenericFeature",
+      	  "storeClass" : "PydginElastic/Store/SeqFeature/GenericFeature",
+      	  "type" : "JBrowse/View/Track/CanvasFeatures",
+      	  "onClick" : {
+      	  	  "url" : "/gene/{id}/",
+      	  	  "label" : "Click to view in ImmunoBase",
+      	  	  "action" : "newWindow"
+      	  },
+      	  "compress" : 0,
+      	  "urlTemplate" : "/rest/features/?format=json&ftype=gene&build=hg38&chr={refseq}&start={start}&end={end}",
+      	  "style" : {
+      	  	  "height": 8,
+      	  	  "textFont": "normal 11px Helvetica,Arial,sans-serif",
+      	  	  "strandArrow": true,
+      	  	  "color" : "function(feature) { if(feature.get('biotype') == 'protein_coding') { return 'blue' } if(feature.get('biotype') == 'miscRNA') { return 'orange' } if(feature.get('biotype') == 'snRNA') { return 'brown' } if(feature.get('biotype') == 'rRNA') { return 'yellowgreen' } if(feature.get('biotype') == 'tRNA') { return 'green' } if(feature.get('biotype') == 'scRNA') { return 'yellow' } if(feature.get('biotype') == 'snoRNA') { return 'red' } if(feature.get('biotype').match('pseudo')) { return 'lightblue' }  return 'black' }",
+      	  },
+      	  "metadata": {
+      	  	  "Description": "RNA-seq",
+      	  	  "Conditions": "caffeine starvation",
+      	  	  "Species": "Volvox carteri",
+      	  	  "Data Provider": "Robert Buels Institute for Example Data"
+      	  }
+      },
+      {
+         "category" : "Gene Models",
+         "urlTemplate" : "tracks/EnsemblGenes/{refseq}/trackData.json",
+         "labelTranscripts" : false,
+         "track" : "Genes",
+         "compress" : 0,
+         "label" : "EnsemblGenes",
+         "storeClass" : "JBrowse/Store/SeqFeature/NCList",
+         "key" : "Ensembl Genes",
+         "type" : "JBrowse/View/Track/CanvasFeatures",
+         "style" : {
+            "className" : "transcript"
+         }
+      },
+      {
+      	  "label" : "PydginRegions",
+      	  "compress" : 0,
+      	  "key" : "ImmunoBase Regions",
+      	  "storeClass" : "PydginElastic/Store/SeqFeature/GenericFeature",
+      	  "type" : "JBrowse/View/Track/CanvasFeatures",
+      	  "urlTemplate" : "/rest/features/?format=json&ftype=region&build=hg38&chr={refseq}&start={start}&end={end}",
+      	  "glyph" : "JBrowse/View/FeatureGlyph/Gene",
+      	  "style" : {
+            "className" : "generic",
+            "color" : "function(feature) { dis = feature.get('attributes')['disease']; if (dis == undefined) { return 'black'; } switch (dis) {case 'T1D': return '#1f78b4'; case 'CRO': return '#ff7f00'; case 'RA': return '#a6cee3'; case 'UC': return '#fb9a99'; case 'MS': return '#6a3d9a'; case 'CEL': return '#33a02c'; case 'SLE': return '#ffd700'; case 'AS': return '#cab2d6'; case 'PBC': return '#b2df8a'; case 'PSO': return '#b15928'; case 'ATD': return '#e31a1c'; case 'JIA': return '#fdbf6f'; return '#4c4c4c'; default: return '#4c4c4c';} }"
+         },
+         "onClick" : {
+            "url" : "/region/{id}/",
+            "label" : "Click to view {name} in ImmunoBase",
+            "action" : "newWindow"
+         },
+      },
+      {
+         "category" : "Immunochip Statistics",
+         "label" : "cro_liu",
+         "storeClass" : "PydginElastic/Store/SeqFeature/MarkerStats",
+         "key" : "Liu - CRO",
+         "compress" : 0,
+         "urlTemplate" : "/marker/stats/?chr={refseq}&start={start}&end={end}&idx_type=cro_liu",
+         "maxFeatureScreenDensity" : 6,
+         "style" : {
+            "width" : 7,
+            "className" : "feature",
+            "color" : "function(feature) { if(feature.get('score')< 5e-08 ) { return 'rgb(0,102,51)' }  if(feature.get('score')< 1e-05 ) { return 'rgb(122,179,23)' } return 'rgb(227,238,249)' }",
+         },
+         "type" : "GWASViewer/View/Track/VariantPlotter",
+         "onClick" : {
+            "url" : "/marker/{id}/",
+            "label" : "function() { return this.feature.get('id')+' [P Val: '+this.feature.get('score')+']'; }",
+            "action" : "newWindow"
+         },
+      },
+      {
+         "category" : "Immunochip Statistics",
+         "label" : "uc_liu",
+         "storeClass" : "PydginElastic/Store/SeqFeature/MarkerStats",
+         "key" : "Liu - UC",
+         "compress" : 0,
+         "urlTemplate" : "/marker/stats/?chr={refseq}&start={start}&end={end}&idx_type=uc_liu",
+         "maxFeatureScreenDensity" : 6,
+         "style" : {
+            "width" : 7,
+            "className" : "feature",
+            "color" : "function(feature) { if(feature.get('score')< 5e-08 ) { return 'rgb(0,102,51)' }  if(feature.get('score')< 1e-05 ) { return 'rgb(122,179,23)' } return 'rgb(227,238,249)' }",
+         },
+         "type" : "GWASViewer/View/Track/VariantPlotter",
+         "onClick" : {
+            "url" : "/marker/{id}/",
+            "label" : "function() { return this.feature.get('id')+' [P Val: '+this.feature.get('score')+']'; }",
+            "action" : "newWindow"
+         },
+      },
+      {
+         "category" : "Immunochip Statistics",
+         "label" : "cel_trynka",
+         "storeClass" : "PydginElastic/Store/SeqFeature/MarkerStats",
+         "key" : "Trynka - CEL",
+         "compress" : 0,
+         "urlTemplate" : "/marker/stats/?chr={refseq}&start={start}&end={end}&idx_type=cel_trynka",
+         "maxFeatureScreenDensity" : 6,
+         "style" : {
+            "width" : 7,
+            "className" : "feature",
+            "color" : "function(feature) { if(feature.get('score')< 5e-08 ) { return 'rgb(0,102,51)' }  if(feature.get('score')< 1e-05 ) { return 'rgb(122,179,23)' } return 'rgb(227,238,249)' }",
+         },
+         "type" : "GWASViewer/View/Track/VariantPlotter",
+         "onClick" : {
+            "url" : "/marker/{id}/",
+            "label" : "function() { return this.feature.get('id')+' [P Val: '+this.feature.get('score')+']'; }",
+            "action" : "newWindow"
+         },
+      },
+      {
+         "category" : "Immunochip Statistics",
+         "label" : "t1d_onengut",
+         "storeClass" : "PydginElastic/Store/SeqFeature/MarkerStats",
+         "key" : "Onengut - T1D",
+         "compress" : 0,
+         "urlTemplate" : "/marker/stats/?chr={refseq}&start={start}&end={end}&idx_type=t1d_onengut",
+         "maxFeatureScreenDensity" : 6,
+         "style" : {
+            "width" : 7,
+            "className" : "feature",
+            "color" : "function(feature) { if(feature.get('score')< 5e-08 ) { return 'rgb(0,102,51)' }  if(feature.get('score')< 1e-05 ) { return 'rgb(122,179,23)' } return 'rgb(227,238,249)' }",
+         },
+         "type" : "GWASViewer/View/Track/VariantPlotter",
+         "onClick" : {
+            "url" : "/marker/{id}/",
+            "label" : "function() { return this.feature.get('id')+' [P Val: '+this.feature.get('score')+']'; }",
+            "action" : "newWindow"
+         },
+      },
+   ]
+}

@@ -16,6 +16,8 @@
 			<a href="/marker/{{ marker }}/">{{ marker }}</a>{% if not forloop.last %};{% endif %}&nbsp;
 		{% endfor %}
 	</td></tr>
-	<tr><td>Location</td><td><a href="/browser/hg38/?loc={{ f|location }}">{{ f|location }}</a></td></tr>
+	{% with build_info=f|doc_attr:"build_info" %}
+	<tr><td>Location</td><td><a href="/jbrowse/index.html?loc=chr{{ build_info.seqid }}:{{ build_info.start }}..{{ build_info.end }}">{{ f|location }}</a></td></tr>
+	{% endwith %}
 </table>
 {% endblock %}
