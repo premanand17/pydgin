@@ -1,9 +1,12 @@
 ''' Template tags for the search engine app. '''
+import re
+
 from django import template
+from django.conf import settings
+
 from elastic.elastic_settings import ElasticSettings
 from elastic.result import Document
-from django.conf import settings
-import re
+
 
 register = template.Library()
 
@@ -12,6 +15,12 @@ register = template.Library()
 def show_search_engine(context):
     ''' Template inclusion tag to render search engine form. '''
     return {'index': ElasticSettings.search_props(user=context['request'].user)['idx_keys']}
+
+
+@register.assignment_tag(takes_context=True)
+def search_keys(context):
+    ''' Get the search index key names (e.g. MARKER, GENE). '''
+    return ElasticSettings.search_props(user=context['request'].user)['idx_keys']
 
 
 @register.filter

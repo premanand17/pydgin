@@ -76,7 +76,7 @@ class Search(TestCase):
                     navbar.click()
                     time.sleep(0.2)
 
-                auto_complete = br.find_element_by_class_name("ui-autocomplete")
+                auto_complete = br.find_element_by_class_name("form-control")
                 search_box.send_keys("PT")
                 time.sleep(1)
                 self.assertTrue(auto_complete.is_displayed())

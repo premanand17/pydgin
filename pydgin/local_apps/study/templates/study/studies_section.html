@@ -1,0 +1,40 @@
+{% extends "section.html" %}
+{% block section_js %}
+
+{% load staticfiles %}
+<script src={% static "study/study.js" %}></script>
+
+<script language="javascript" type="text/javascript">
+$(document).ready(function() {
+    var markers = {% if markers %}{{ markers|safe }}{% else %}""{% endif %};
+	study.get_study_details("{{ ens_id }}", "{{ marker }}", markers);
+} );
+</script>
+{% endblock %}
+{% block section %}
+<!-- STUDY SECTION -->
+{% load pydgin_tags %}
+<p>Studies containing regions of association that span this {{ appname }} are
+	shown below. Please note that when making comparisons across studies,
+	that they may vary in terms of size, genotyping platform, and exclusion
+	criteria. If the 'Odds Ratio' is less than 1 then the region is
+	protective (alleles are marked as blue) otherwise it is susceptible
+	(alleles marked as red).</p>
+<table id="table-study-{{ ens_id }}{{ marker }}" class="display responsive table table-striped table-condensed">
+	<thead>
+		<tr>
+			<th>Study</th>
+			<th>Publication</th>
+			<th>Disease</th>
+			<th>Region</th>
+			<th>Marker</th>
+			<th>Alleles</th>
+			<th class="visible-md visible-lg" nowrap>P-value</th>
+			<th class="visible-md visible-lg">OR</th>
+			<th class="visible-md visible-lg">MAF</th>
+			<th class="visible-md visible-lg">Gene(s)</th>
+		</tr>
+	</thead>
+	<tbody></tbody>
+</table>
+{% endblock %}

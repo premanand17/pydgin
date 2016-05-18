@@ -1,0 +1,69 @@
+{% extends "section.html" %}
+
+{% block section %}
+<!-- OVERVIEW SECTION -->
+{% load filter_tags %}
+	{{ f|doc_attr:'description'|safe }}
+	<div class="row" style="margin-bottom: 2px">
+	{% with pub=f|doc_attr:'principal_publication' %}
+		<div class="col-md-2"><strong>Study Paper</strong></div><div class="col-md-8"><a href="http://www.ncbi.nlm.nih.gov/pubmed/{{ pub|doc_id }}" target="_blank">{{ pub|doc_attr:'title' }}</a> {{ pub|doc_attr:'date' }}</div>
+	{% endwith %}
+	</div>
+
+	<div class="row" style="margin-bottom: 2px">
+		<div class="col-md-2"><strong>Study Type</strong></div><div class="col-md-8">{{ f|doc_attr:'study_type' }}</div>
+	</div>
+	
+	<!-- SAMPLES -->
+	<div class="row" style="margin-bottom: 2px">
+		<div class="col-md-2"><strong>Samples</strong></div>
+		<div class="col-md-8">
+			{% for sample in f|doc_attr:'samples' %}
+				{% if forloop.first %}
+					<table class="table table-responsive table-condensed">
+					<thead>
+					<th>Group</th>
+					<th>Phenotype</th>
+					<th class="visible-sm visible-md visible-lg">Population</th>
+					<th>Cases</th>
+					<th>Controls</th>
+					<th class="visible-sm visible-md visible-lg">Families</th>
+					<th>Trios</th></thead>
+					<tbody>
+				{% endif %}
+				<tr>
+					<td>{{ sample.group }}</td> <td>{{ sample.phenotype }}</td>
+					<td class="visible-sm visible-md visible-lg">{% if sample.population != None %}{{ sample.population }}{% endif %}</td>
+					<td>{% if sample.cases != '0' %}{{ sample.cases }}{% else %}-{% endif %}</td>
+					<td>{% if sample.controls != '0' %}{{ sample.controls }}{% else %}-{% endif %}</td>
+					<td class="visible-sm visible-md visible-lg">{% if sample.families != '0' %}{{ sample.families }}{% else %}-{% endif %}</td>
+					<td>{% if sample.trios != '0' %}{{ sample.trios }}{% else %}-{% endif %}</td>
+				</tr>
+				{% if forloop.last %}
+					</tbody></table>
+				{% endif %}
+			{% endfor %}
+		</div>
+	</div>
+
+	{% if f|doc_attr:'exclusions' %}
+	<div class="row" style="margin-bottom: 2px">
+		<div class="col-md-2"><strong>Exclusion Criteria</strong></div><div class="col-md-8">{{ f|doc_attr:'exclusions'|safe }}</div>
+	</div>
+	{% endif %}
+
+	<!--  ASSOCIATED STUDIES -->
+	{% if f|doc_attr:'assoc_studies' %}
+	<div class="row" style="margin-bottom: 2px">
+		<div class="col-md-2"><strong>Associated Studies</strong></div>
+		<div class="col-md-8">
+			{% for study in f|doc_attr:'assoc_studies' %}
+				{% with pub=study|doc_attr:'principal_publication' %}
+					<a href="/study/{{ study|doc_id }}">{{ pub|doc_attr:'title' }}</a><br>
+				{% endwith %}
+			{% endfor %}
+		</div>
+	</div>
+	{% endif %}
+	
+{% endblock %}

@@ -1,0 +1,79 @@
+{% extends "feature.html" %}
+{% block title %}{{ title }}{% endblock %}
+
+{% block header %}
+{% load staticfiles %}
+<link rel="stylesheet" href="{{ CDN.DATATABLES_BS_CSS }}">
+<link rel="stylesheet" href="{{ CDN.DATATABLES_RESPONSIVE_CSS }}">
+<link rel="stylesheet" href="{{ CDN.DATATABLES_BUTTONS_CSS }}">
+
+<!-- IGV JS -->
+<!-- <link rel="stylesheet" type="text/css" href="//igv.org/web/beta/igv-beta.css"> -->
+<!-- <link rel="stylesheet" type="text/css" href="{% static "css/igv-beta.css" %}"> -->
+<link rel="stylesheet" type="text/css" href="{% static "css/igv-0.9.3.css" %}">
+
+
+{% block staticfiles %}<!-- MORE STATIC FILES HERE -->{% endblock %}
+{% endblock %}
+
+{% block feature %}
+{% block sections %}<!-- SECTION TEMPLATES -->{% endblock %}
+{% endblock %}
+
+
+{% block footer_js %}
+{% load staticfiles %}
+	<script src="{{ CDN.DATATABLES }}"></script>
+	<script src="{{ CDN.DATATABLES_RESPONSIVE }}"></script>
+	<script src="{{ CDN.DATATABLES_BS }}"></script>
+	
+	<!-- datatable exports -->
+	<script src="{{ CDN.DATATABLES_BUTTONS }}"></script>
+	<script src="{{ CDN.BUTTONS_FLASH }}"></script>
+	<script src="{{ CDN.JSZIP }}"></script>
+	<script src="{{ CDN.PDFFMAKE }}"></script>
+	<script src="{{ CDN.VFS_FONTS }}"></script>
+	<script src="{{ CDN.BUTTONS_HTML5 }}"></script>
+	<script src="{{ CDN.BUTTONS_PRINT }}"></script>
+
+	<!-- IGV JS -->
+	<!-- <script type="text/javascript" src="//igv.org/web/beta/igv-beta.js"></script> -->
+	<!-- <script type="text/javascript" src="{% static "js/igv-beta.js" %}"></script> -->
+	<script type="text/javascript" src="{% static "js/igv-0.9.3.js" %}"></script>
+
+	<script language="javascript" type="text/javascript">
+
+	<!-- Scientiic sort: https://www.datatables.net/plug-ins/sorting/scientific -->
+	jQuery.extend( jQuery.fn.dataTableExt.oSort, {
+	    "scientific-pre": function ( a ) {
+	        return parseFloat(a);
+	    },
+	 
+	    "scientific-asc": function ( a, b ) {
+	        return ((a < b) ? -1 : ((a > b) ? 1 : 0));
+	    },
+	 
+	    "scientific-desc": function ( a, b ) {
+	        return ((a < b) ? 1 : ((a > b) ? -1 : 0));
+	    }
+	} );
+	
+	$(document).ready(function() {
+		var page_type = '_'+window.location.pathname.split("/")[1]+'_';
+		$('.panel-body.collapse').each(function(){
+			if (localStorage.getItem($(this).attr('name'))) {
+				$(this).collapse('show'); // open sections
+			}
+		});
+
+		$('.panel-body').on('shown.bs.collapse', function (e) {
+			localStorage.setItem($(this).attr('name'), 'open');
+		});
+	
+		$('.panel-body').on('hidden.bs.collapse', function (e) {
+			localStorage.removeItem($(this).attr('name'));
+		});
+	});
+	</script>
+	{% block extra_footer_js %}{% endblock %}
+{% endblock %}

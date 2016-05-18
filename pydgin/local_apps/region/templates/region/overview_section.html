@@ -1,0 +1,21 @@
+{% extends "section.html" %}
+{% block section %}
+{% load filter_tags %}
+{% load pydgin_tags %}
+
+<table class="table table-striped table-condensed">
+	<tr><td>Genes </td><td>
+		{% with genes=f|doc_attr:"genes"|ens2sym %}
+			{%for ens_id, doc in genes.items %}
+				<a href="/gene/{{ ens_id }}/">{{ doc|doc_attr:"symbol" }}</a>{% if not forloop.last %};{% endif %}&nbsp;
+			{% endfor %}
+		{% endwith %}
+	</td></tr>
+	<tr><td>Markers </td><td>
+		{% for marker in f|doc_attr:"markers" %}
+			<a href="/marker/{{ marker }}/">{{ marker }}</a>{% if not forloop.last %};{% endif %}&nbsp;
+		{% endfor %}
+	</td></tr>
+	<tr><td>Location</td><td><a href="/browser/hg38/?loc={{ f|location }}">{{ f|location }}</a></td></tr>
+</table>
+{% endblock %}

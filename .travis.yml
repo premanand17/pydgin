@@ -1,0 +1,44 @@
+branches:
+  only:
+    - master
+    - develop
+language: python
+python:
+ - "3.4"
+ - "3.5"
+# command to install dependencies
+env:
+  - DJANGO_VERSION=1.8.8
+services:
+  - elasticsearch
+before_install:
+  - sudo service elasticsearch stop
+  - curl -O https://download.elasticsearch.org/elasticsearch/release/org/elasticsearch/distribution/deb/elasticsearch/2.2.0/elasticsearch-2.2.0.deb && sudo dpkg -i --force-confnew elasticsearch-2.2.0.deb
+  - 'command sudo sed -i "\$apath.repo: [\"/tmp/test_snapshot/\"]" /etc/elasticsearch/elasticsearch.yml'
+  - tail /etc/elasticsearch/elasticsearch.yml
+  - sudo service elasticsearch restart
+  - sudo -u postgres psql -c "CREATE USER webuser WITH PASSWORD 'webuser';"
+  - sudo -u postgres psql -c "ALTER USER webuser CREATEDB;"
+  - sudo -u postgres psql -c "CREATE database pydgin_authdb;"
+  - sudo -u postgres psql -c "GRANT ALL PRIVILEGES ON DATABASE "pydgin_authdb" TO webuser;"
+install: 
+  - sed -i "s|'data_pipeline',||" pydgin/settings.py
+  - sed -i "s|'mod_wsgi.server',||" pydgin/settings.py
+  - sed -i '/^mod-wsgi==/ d' requirements-dev.txt
+  - pip install -r requirements.txt || true
+  - pip install coveralls
+  - cp pydgin/settings_secret.py.template pydgin/settings_secret.py
+  - mkdir -p log
+  - ./manage.py repository my_backup --dir /tmp/test_snapshot/
+  - ./manage.py makemigrations
+  - ./manage.py migrate --noinput
+  - ./manage.py makemigrations elastic
+  - ./manage.py migrate elastic --noinput
+before_script:
+  - sleep 10
+  - 'command ps -ef | grep elastic'
+# command to run tests
+script: 
+  - coverage run --include="pydgin/*,*/elastic/*,*/pydgin_auth/*" ./runtests.py
+#after_success:
+  - coveralls

@@ -1,18 +1,11 @@
-<form class="form-inline navbar-form navbar-right" role="search" id="searchForm" action="/search/">
-	<select id="idx" name="idx" class="form-control">
-	<option>ALL</option>
-	{% for idx in index %}
-		<option value="{{ idx }}">{{ idx }}</option>
-	{% endfor %}
-	</select>
-
+<form class="form-inline navbar-form" role="search" id="searchForm" action="/search/">
 	<div class="input-group">
-		<input id="search" type="text" class="form-control" name="query" value="">  
+		<input id="search" type="text" class="form-control" name="query" size="50" placeholder="e.g. PTPN22, rs2476601, 1p13.2" style="font-size:inherit" value="" spellcheck="false">
 		<span class="input-group-btn">
-			<button class="btn btn-default" type="submit">
+			<button class="btn btn-primary" type="submit">
 				<i class="fa fa-search"></i>
 			</button>
 		</span>
 	</div>
+	<input type="hidden" id="idx" name="idx" class="form-control" value="ALL">
 </form>
-				

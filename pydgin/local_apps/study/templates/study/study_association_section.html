@@ -1,0 +1,56 @@
+{% extends "section.html" %}
+
+{% block section %}
+{% load filter_tags %}
+<!-- STUDY ASSOCIATION SEVTION -->
+	{% for hit in f|doc_attr:'hits' %}	
+		{% if forloop.first %}
+			<table id="study_section" class="table table-responsive table-condensed">
+				<thead>
+				<th>Region</th>
+				<th>Location</th>
+				<th>Gene(s)</th>
+				<th>Marker</th>
+				<th class="visible-md visible-lg">Allele</th>
+				<th class="visible-md visible-lg">MAF</th>
+				<th class="visible-md visible-lg">P Value</th>
+				<th class="visible-md visible-lg">Odds Ratio</th>
+				</thead>
+			<tbody>
+		{% endif %}
+		<tr>
+		<td>{% if hit|doc_attr:'disease_locus' == 'TBC' %}{{ hit|doc_attr:'chr_band' }}{% else %}<a href="/region/{{ hit|doc_attr:'disease_locus' }}/">{{ hit|doc_attr:'chr_band' }}</a>{% endif %}</td>
+		<td><a href="/browser/hg38/?loc={{ hit|doc_attr:'loc' }}">{{ hit|doc_attr:'loc' }}</a></td>
+		{% with genes=hit|doc_attr:'genes' %}
+			<td>{% if genes %}
+				{% for ens_id, symbol in genes.items %}
+				<a href="/gene/{{ ens_id }}/">{{ symbol }}</a>&nbsp;
+				{% endfor %}
+			{% endif %}</td>
+		{% endwith %}
+		{% with alleles=hit|doc_attr:'alleles' %}
+			<td><a href="/marker/{{ hit|doc_attr:'marker' }}/">{{ hit|doc_attr:'marker' }}</a></td>
+			<td class="visible-md visible-lg">{{ alleles.major }} &gt; {{ alleles.minor }}</td>
+			<td class="visible-md visible-lg">{% if alleles.maf %}{{ alleles.maf }}{% endif %}</td>
+		{% endwith %}
+		<td>{% if hit.p_value != None %}{{ hit.p_value|stringformat:".2e" }}<sup>{{ hit.p_val_src }}</sup>{% else %}&nbsp;{% endif %}</td>
+		<td>{% if hit.odds_ratio != None %}{{ hit.odds_ratio }}{% if hit.or_bounds != None %}&nbsp;{{ hit.or_bounds }}{% endif %}<sup>{{ hit.or_src }}</sup>{% else %}&nbsp;{% endif %}</td>
+		</tr>
+		{% if forloop.last %}
+			</tbody></table>
+		{% endif %}
+		
+	{% endfor %}
+{% endblock %}
+
+{% block section_js %}
+        <script language="javascript" type="text/javascript">
+        $(document).ready(function() {
+        	$('table#study_section').DataTable({"dom": "Bfrtip", "bPaginate": true,  "aaSorting": [],
+        		columnDefs: [
+        		             { type: 'scientific', targets: 6 }
+        		           ],
+        		"buttons": ['copy', 'csv', 'excel', 'pdf', 'print']});
+        } );
+        </script>
+{% endblock %}

@@ -1,6 +1,209 @@
 {% extends "base.html" %}
 {% block title %}{{ query }}{% endblock %}
-{% block header %}
+
+{% block content %}
+{% load filter_tags %}
+{% load pydgin_tags %}
+{% load disease_tags %}	
+{% load search_engine_tags %}
+
+<div class="container-fluid">
+	<div class="row">
+	<div class="col-md-4">
+	<form class="form" id="search-form" method="post">{% csrf_token %}
+		<input type="hidden" name="query" value="{{ query }}"><input type="hidden" name="idx" value="{{ idx_name }}">
+	</div>
+	</div>
+	
+	<div class="row">
+		<div class="col-sm-12">
+			<ul class="breadcrumb" id="search_history">
+				<li>Search History</li>
+			</ul>
+		</div>
+	</div>
+	
+	{% if not data %}
+	<p>No results found for <strong>{{ query }}</strong>.</p>
+	{% endif %}
+	
+	
+	
+	<div class="row">
+	<div class="col-md-3">
+		<!-- INDEX CATEGORIES -->
+		<p>&nbsp;</p>
+		<div>
+			<ul id="categories" class="nav nav-pills nav-stacked">
+			{% for data_key, data_val in data.items|sort %}
+				{% if data_val.doc_count > 0 %}
+				<li id="bucket-{{ data_key }}" role="presentation" {% if forloop.counter == 1 %}class="active"{% endif %}>
+					<input type="hidden" name="categories" value="{{ data_key }}">
+					<a href="#{{ data_key }}" data-toggle="pill">{{ data_key }} <span class="badge">{{ data_val.doc_count }}</span></a>
+				</li>
+				{% endif %}
+			{% endfor %}
+			</ul>
+		</div>
+		<!-- BIOTYPES -->
+		<br/>
+		{% for agg, agg_value in aggs.items|sort %}
+		  {% if agg_value.get_buckets and agg == 'biotypes' %}
+			<div class="panel panel-info collapse" id="biotypes">
+			<div class="panel-heading"><h4 class="panel-title">{{ agg }}</h4></div>
+			<div class="panel-body">
+			{% for bucket in agg_value.get_buckets|sort %}
+				<div class="checkbox">
+				<label><input type="checkbox" name="biotypes" value="{{ bucket.key }}" {% if bucket.doc_count > 0 %}checked{% endif %}>
+				{{ bucket.key }} <span class="badge">{{ bucket.doc_count }}</span></label>
+				<input type="hidden" name="saved-biotypes" value="{{ bucket.key }}">
+				</div>
+			{% endfor %}
+			</div>
+			</div>
+		  {% endif %}
+		{% endfor %}
+	
+		<!-- ADVANCED FILTERS -->
+		<a class="btn btn-sm btn-primary" role="button" data-toggle="collapse" href="#advanced-filters"
+		aria-expanded="false" aria-controls="advanced-filters">Advanced filters</a><br /><br />
+		<div class="collapse" id="advanced-filters">
+		{% for idx, idxmap in mappings.items|sort %}
+			<div class="panel panel-info collapse" id="filter-{{ idx|lower }}">
+			<div class="panel-heading"><h4 class="panel-title">{{ idx }}</h4></div>
+			<div class="panel-body">
+			{% for type, values in idxmap.mappings.items|sort %}
+				{% if idxmap.mappings|length > 1 %}<strong>{{ type }}</strong>{% endif %}
+				{% for para, para_type in values.properties.items|sort %}
+				    {% if para_type.properties %}
+				    	<div class="panel panel-default">
+				        <div class="panel-body">
+				        <div>{{ para }}:</div>
+				    	{% for subpara, subpara_type in para_type.properties.items|sort %}
+				    			<div class="checkbox"><label>
+				    			<input type="checkbox" name="{{ type }}_{{ para }}_{{ subpara }}" value="{{ type }}:{{ para }}:{{ subpara }}"
+				    				{% if para.subpara in fields or para|add:"."|add:subpara in fields %}checked{% endif %}>{{ subpara }}</label></div>
+				    	{% endfor %}
+				    	</div></div>
+				    {% elif "string" == para_type.type %}
+				        <div class="checkbox">
+				    		<label><input type="checkbox" name="{{ type }}_{{ para }}" value="{{ type }}:{{ para }}" 
+				    			{% if para in fields %}checked{% endif %}>{{ para }}</label>
+				    	</div>
+			        {% endif %}
+				{% endfor %}
+			{% endfor %}
+			</div></div>
+		{% endfor %}
+		</div>
+	</form>
+	</div> <!-- end of column -->
+	
+	<!-- HITS -->
+	<div class="col-md-9">
+	<div class="pull-right form-inline">
+		<label>Max Hits:</label>
+		<select id="maxsize" name="maxsize" class="form-control input-sm" form="search-form">
+			<option value="20" {% if maxsize == 20 %}selected="selected"{% endif %}>20</option>
+			<option value="50" {% if maxsize == 50 %}selected="selected"{% endif %}>50</option>
+			<option value="100" {% if maxsize == 100 %}selected="selected"{% endif %}>100</option> 
+		</select>
+	</div>
+	
+	<div class="tab-content">
+	{% for data_key, data_val in data.items|sort %}
+		<div id="{{ data_key }}" class="tab-pane fade in {% if forloop.counter == 1 %}active{% endif %}">
+	
+		{% for doc in data_val.docs %}
+	
+			{% if forloop.counter == 1 %}
+				<p>{{ data_val.docs|length }} of {{ data_val.doc_count }} hit(s) for '{{ query }}':</p>
+				{% if data_key == "gene" and data_val.docs|length > 1 %}
+					<form id="{{ data_key }}-compare" class="form-inline">
+					<button type="submit" class="btn-sm btn btn-primary" style="margin-bottom:1em">Compare Selected</button>
+				{% endif %}
+			{% endif %}
+	
+			<div class="panel panel-default"><div class="panel-body">			
+	  		<div class="row"> <!-- panel row -->
+			<div class="col-md-2 col-lg-1">
+				<h4 style="margin-top: 0"><span class="label label-success">{{ doc|doc_type }}</span></h4>
+				{% if doc|doc_type == 'gene' %}
+					<span style="white-space: nowrap;"><strong><a href="/gene/{{ doc|doc_id }}/">{{ doc|doc_attr:"symbol" }} </a></strong></span>
+					{% if data_val.docs|length > 1 %}<div class="checkbox"><input id="{{ doc|doc_attr:"dbxrefs"|get_item:"ensembl" }}" type="checkbox"></div>{% endif %}
+				{% elif doc|doc_type == 'marker' %}
+					<span style="white-space: nowrap;"><strong><a href="/marker/{{ doc|doc_attr:"id" }}/">{{ doc|doc_attr:"id" }}</a></strong></span>			
+				{% elif doc|doc_type == 'immunochip' %}
+					<span style="white-space: nowrap;"><strong><a href="/marker/{{ doc|doc_attr:"name" }}/">{{ doc|doc_attr:"name" }}</a></strong></span>			
+				{% elif doc|doc_type == 'publication' %}
+					<strong><a href="http://www.ncbi.nlm.nih.gov/pubmed/{{ doc|doc_attr:"pmid" }}" target="_blank">PMID:{{ doc|doc_attr:"pmid" }}</a></strong>
+				{% elif doc|doc_type == 'region' %}
+					<span style="white-space: nowrap;"><strong><a href="/region/{{ doc|doc_attr:"region_id" }}/">{{ doc|doc_attr:"region_name" }}</a></strong></span>
+				{% elif doc|doc_type == 'disease' %}
+					<span style="white-space: nowrap;"><strong><a href="/disease/{{ doc|doc_attr:"code"|upper }}/">{{ doc|doc_attr:"code"|upper  }}</a></strong></span>
+				{% elif doc|doc_type == 'studies' %}
+					<span style="white-space: nowrap;"><strong><a href="/study/{{ doc|doc_attr:"study_id" }}/">{{ doc|doc_attr:"study_id" }}</a></strong></span>
+				{% else %}
+					<!-- <strong><a href="{{ doc|doc_link|safe }}" target="_blank">document</a></strong> -->
+				{% endif %}
+				<!-- <strong><a href="{{ doc|doc_link|safe }}" target="_blank">document</a></strong> -->
+			</div>
+	
+	        {% with result_card_keys=doc|doc_result_card_keys %}
+				<div class="col-md-10 col-lg-11">
+					<!-- highlight fields matching search -->
+					{% with '<strong> </strong>' as tags %} {% with doc|doc_highlight as frags %}
+					{% for key, vals in frags.items %}
+						<div class="row"> <!-- details row -->
+						   <div class="col-sm-2 col-xs-3 text-right"><strong>{{ key }}</strong></div>
+						   <div class="col-sm-10 col-xs-9">
+						   {% for html_frag in vals %}
+							   {% if html_frag in tags %}
+									{{ html_frag|safe }}
+							   {% else %}
+									{{ html_frag }}
+							   {% endif %}
+						   {% endfor %}
+						   </div>
+						</div>
+					{% endfor %}
+					{% endwith %} {% endwith %}
+
+					<!-- other fields -->
+					{% for key in result_card_keys %}
+						{% if key != "_meta" and key not in doc|doc_highlight_keys %}
+							<div class="row"> <!-- details row -->
+							    <div class="col-sm-2 col-xs-3 text-right"><strong>{{ key }}</strong></div>
+							    <div class="col-sm-10 col-xs-9">
+							    	{{ doc|doc_attr_str:key }}
+								</div>
+							</div>
+						{% endif %}
+					{% endfor %}
+					{% if doc|diseases|length > 0 %}<div class="row"><div class="col-sm-10 col-xs-9 col-sm-offset-2 col-xs-offset-3">{% show_small_disease_bar doc|diseases %}</div></div>
+					{% elif doc|doc_type == 'publication' %}
+						{% with tags=doc|doc_attr:'tags' %}
+							{% if tags.disease %}<div class="row"><div class="col-sm-10 col-xs-9 col-sm-offset-2 col-xs-offset-3">{% show_small_disease_bar tags.disease %}</div></div>{% endif %}
+						{% endwith %}
+					{% endif %}
+				</div>
+			{% endwith %}
+			</div>
+			<!-- panel row -->
+			</div></div>
+	
+		{% endfor %}
+		{% if data_key == "gene" %}<!-- compare features form --></form>{% endif %}
+		</div>
+	{% endfor %}
+	</div>
+	
+	</div> <!-- end of column -->
+	</div> <!-- end of row -->
+</div>
+{% endblock %}
+
+{% block footer_js %}
 <script>
 $(document).ready(function() {
 	// set dropdown list to idx selected
@@ -23,178 +226,46 @@ $(document).ready(function() {
 		// save the latest tab in local storage
 		localStorage.setItem('searchLastTab', $(this).attr('href'));
 	});
+	
+	searchTerms = JSON.parse(localStorage.getItem("search_terms"))
+	if (searchTerms === null){
+		searchTerms = []
+	}
+	else if (searchTerms.length > 10){
+		searchTerms = searchTerms.slice(-10);
+	}
+
+	var newSearchTerms = [];
+	$.each(searchTerms, function(i, el){
+	    if(el.toUpperCase() !== '{{query}}'.toUpperCase()) {
+	    	newSearchTerms.push(el);
+	    	$("#search_history").append('<li><a href="/search/?query='+el+'&idx=ALL">'+el+'</a></li>');
+	    }
+	});
+	searchTerms = newSearchTerms;
+	$("#search_history").append('<li class="active">{{ query }}</li>');
+	searchTerms.push('{{ query }}')
+	localStorage.setItem('search_terms', JSON.stringify(searchTerms));
 
 	// go to the latest tab, if it exists:
 	 var lastTab = localStorage.getItem('searchLastTab');
 	 if (lastTab && $('[href="' + lastTab + '"]').length) {
 		 $('[href="' + lastTab + '"]').tab('show');
 		 search_engine.toggle_category(lastTab.replace('#', ''));
-	 } else {
+	 } else if (typeof $('#categories > li.active').attr('id') !== "undefined"){
 		 var cat = $('#categories > li.active').attr('id').replace('bucket-', '');
 		 search_engine.toggle_category(cat);
 	 }
+
+	 // gene comparison
+	 $( "#gene-compare" ).submit(function( event ) {
+		  event.preventDefault();
+		  var features = '';
+		  $("#"+event.target.id+" input:checkbox:checked").each(function() {
+			    features += ','+this.id;
+		  });
+		  location.href = "/gene/?g=" + features.substring(1);
+	});
 });
 </script>
-{% endblock %}
-
-{% block content %}
-{% load filter_tags %}
-{% load search_engine_tags %}
-
-<div class="row">
-<div class="col-md-4">
-<form class="form" id="search-form" method="post">{% csrf_token %}
-	<input type="hidden" name="query" value="{{ query }}"><input type="hidden" name="idx" value="{{ idx_name }}">
-</div>
-</div>
-
-{% if not data %}
-<p>No results found for <strong>{{ query }}</strong>.</p>
-{% endif %}
-<div class="row">
-<div class="col-md-3">
-	<!-- INDEX CATEGORIES -->
-	<p>&nbsp;</p>
-	<div>
-		<ul id="categories" class="nav nav-pills nav-stacked">
-		{% for data_key, data_val in data.items|sort %}
-			<li id="bucket-{{ data_key }}" role="presentation" {% if forloop.counter == 1 %}class="active"{% endif %}>
-				<input type="hidden" name="categories" value="{{ data_key }}">
-				<a href="#{{ data_key }}" data-toggle="pill">{{ data_key }} <span class="badge">{{ data_val.doc_count }}</span></a>
-			</li>
-		{% endfor %}
-		</ul>
-	</div>
-	<!-- BIOTYPES -->
-	<br/>
-	{% for agg, agg_value in aggs.items|sort %}
-	  {% if agg_value.get_buckets and agg == 'biotypes' %}
-		<div class="panel panel-info collapse" id="biotypes">
-		<div class="panel-heading"><h4 class="panel-title">{{ agg }}</h4></div>
-		<div class="panel-body">
-		{% for bucket in agg_value.get_buckets|sort %}
-			<div class="checkbox">
-			<label><input type="checkbox" name="biotypes" value="{{ bucket.key }}" {% if bucket.doc_count > 0 %}checked{% endif %}>
-			{{ bucket.key }} <span class="badge">{{ bucket.doc_count }}</span></label>
-			<input type="hidden" name="saved-biotypes" value="{{ bucket.key }}">
-			</div>
-		{% endfor %}
-		</div>
-		</div>
-	  {% endif %}
-	{% endfor %}
-
-	<!-- ADVANCED FILTERS -->
-	<a class="btn btn-sm btn-primary" role="button" data-toggle="collapse" href="#advanced-filters"
-	aria-expanded="false" aria-controls="advanced-filters">Advanced filters</a><br /><br />
-	<div class="collapse" id="advanced-filters">
-	{% for idx, idxmap in mappings.items|sort %}
-		<div class="panel panel-info collapse" id="filter-{{ idx|lower }}">
-		<div class="panel-heading"><h4 class="panel-title">{{ idx }}</h4></div>
-		<div class="panel-body">
-		{% for type, values in idxmap.mappings.items|sort %}
-			{% if idxmap.mappings|length > 1 %}<strong>{{ type }}</strong>{% endif %}
-			{% for para, para_type in values.properties.items|sort %}
-			    {% if para_type.properties %}
-			    	<div class="panel panel-default">
-			        <div class="panel-body">
-			        <div>{{ para }}:</div>
-			    	{% for subpara, subpara_type in para_type.properties.items|sort %}
-			    			<div class="checkbox"><label>
-			    			<input type="checkbox" name="{{ type }}_{{ para }}_{{ subpara }}" value="{{ type }}:{{ para }}:{{ subpara }}"
-			    				{% if para.subpara in fields or para|add:"."|add:subpara in fields %}checked{% endif %}>{{ subpara }}</label></div>
-			    	{% endfor %}
-			    	</div></div>
-			    {% elif "string" == para_type.type %}
-			        <div class="checkbox">
-			    		<label><input type="checkbox" name="{{ type }}_{{ para }}" value="{{ type }}:{{ para }}" 
-			    			{% if para in fields %}checked{% endif %}>{{ para }}</label>
-			    	</div>
-		        {% endif %}
-			{% endfor %}
-		{% endfor %}
-		</div></div>
-	{% endfor %}
-	</div>
-</form>
-</div> <!-- end of column -->
-
-<!-- HITS -->
-<div class="col-md-9">
-<div class="pull-right form-inline">
-	<label>Max Hits:</label>
-	<select id="maxsize" name="maxsize" class="form-control input-sm" form="search-form">
-		<option value="20" {% if maxsize == 20 %}selected="selected"{% endif %}>20</option>
-		<option value="50" {% if maxsize == 50 %}selected="selected"{% endif %}>50</option>
-		<option value="100" {% if maxsize == 100 %}selected="selected"{% endif %}>100</option> 
-	</select>
-</div>
-
-<div class="tab-content">
-{% for data_key, data_val in data.items|sort %}
-	<div id="{{ data_key }}" class="tab-pane fade in {% if forloop.counter == 1 %}active{% endif %}">
-	{% for doc in data_val.docs %}
-		{% if forloop.counter == 1 %}
-		<p>{{ data_val.docs|length }} of {{ data_val.doc_count }} hit(s) for '{{ query }}':</p>
-		{% endif %}
-
-		<div class="panel panel-default"><div class="panel-body">
-  		<div class="row"> <!-- panel row -->
-		<div class="col-md-2 col-lg-1">
-			<h4 style="margin-top: 0"><span class="label label-success">{{ doc|doc_type }}</span></h4>
-			{% if doc|doc_type == 'gene' %}
-				<span style="white-space: nowrap;"><strong><a href="/gene/?g={{ doc|doc_id }}">{{ doc|doc_attr:"symbol" }}</a></strong></span>
-			{% elif doc|doc_type == 'marker' %}
-				<span style="white-space: nowrap;"><strong><a href="/marker/?m={{ doc|doc_attr:"id" }}">{{ doc|doc_attr:"id" }}</a></strong></span>			
-			{% elif doc|doc_type == 'publication' %}
-				<strong><a href="http://www.ncbi.nlm.nih.gov/pubmed/{{ doc|doc_attr:"pmid" }}" target="_blank">PMID:{{ doc|doc_attr:"pmid" }}</a></strong>
-			{% else %}
-				<strong><a href="{{ doc|doc_link|safe }}" target="_blank">document</a></strong>
-			{% endif %}
-		</div>
-
-		<div class="col-md-10 col-lg-11">
-			<!-- highlight fields matching search -->
-			{% with '<strong> </strong>' as tags %} {% with doc|doc_highlight as frags %}
-			{% for key, vals in frags.items %}
-				<div class="row"> <!-- details row -->
-				   <div class="col-sm-2 col-xs-3 text-right"><strong>{{ key }}</strong></div>
-				   <div class="col-sm-10 col-xs-9">
-				   {% for html_frag in vals %}
-					   {% if html_frag in tags %}
-							{{ html_frag|safe }}
-					   {% else %}
-							{{ html_frag }}
-					   {% endif %}
-				   {% endfor %}
-				   </div>
-				</div>
-			{% endfor %}
-			{% endwith %} {% endwith %}
-
-			<!-- other fields -->
-			{% for key in doc|doc_keys %}
-				{% if key != "_meta" and key not in doc|doc_highlight_keys %}
-					<div class="row"> <!-- details row -->
-					    <div class="col-sm-2 col-xs-3 text-right"><strong>{{ key }}</strong></div>
-					    <div class="col-sm-10 col-xs-9">
-					    {% if key == 'dbxrefs' %}
-						    Ensembl:{{ doc|doc_attr:key|get_item:'ensembl' }}; Entrez:{{ doc|doc_attr:key|get_item:'entrez' }}
-					    {% else %}
-							{{ doc|doc_attr_str:key }}
-						{%endif %}
-						</div>
-					</div>
-				{% endif %}
-			{% endfor %}
-		</div>
-		</div> <!-- panel row -->
-		</div></div>
-	{% endfor %}
-	</div>
-{% endfor %}
-</div>
-
-</div> <!-- end of column -->
-</div> <!-- end of row -->
 {% endblock %}

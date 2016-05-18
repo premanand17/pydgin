@@ -1,0 +1,227 @@
+{% extends "base.html" %}
+{% load filter_tags %}
+{% load disease_tags %}	
+
+{% block title %}{{ title }}{% endblock %}
+
+{% block content %}
+<section>
+	<div class="container-fluid">
+		<div class="row">
+			<div class="col-md-12 page-header" style="margin-top:0px;">
+				<div class="row">
+					<div class="col-sm-6"><h2 style="margin-top:0px; margin-bottom:0px;">{{ title }}</h2></div>
+					<div class="col-sm-6">
+						<div class="pull-right">
+							{% show_disease_bar dis_list=disease_code %}
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+			
+		<div class="row">
+			<div class="col-xs-12 text-center">
+				{% show_disease_bar selected=disease_code.0 href="/region/table/" %}
+			</div>
+			<div class="col-xs-12 col-md-10">
+				<p>A table of Human loci associated with {{disease}}. Cytogenetic bands are defined using data from UCSC genome browser, protein coding and non-coding genes were extracted from EnsEMBL v84. 
+				Hits were defined by taking the index variant as described in the listed publication. Starting at the variant of interest, the hit is extended out ±0.1cM. 
+				These hits are then merged together to form regions of the genome that are of interest to this disease.</p>
+				<!-- <p>The first column of each region is coloured accordingly; those which have reached genome-wide association in a Celiac study (p<5E-08) or have significant association in candidate 
+				gene study, and those where there is evidence of pleiotropy with another curated autoimmune disease (p.Celiac<1E-05 and p.other<5E-08).</p> -->
+				<!-- <p>Studies have been added to the regions where one of the candidate genes of interest matches the {{disease}} causal gene. An exact match of gene between {{disease}} and a given study is 
+				shown in bold.</p> -->
+				<p>The alleles shown are major allele > minor allele, with the odds ratio being defined for the risk allele. Other signals located in the same region as the primary signal 
+				have a pale yellow background and are shown in italics</p>
+			</div>
+			<div class="col-md-2" id="tblSearchBox">
+				<span style="font-weight:bold;">Filter:</span>
+				<div class="form-group" style="position:relative">
+					<div class="input-group">
+						<input type="text" class="form-control" id="txtSearch" name="txtSearch" style="padding-right:20px">
+						<span id="filter_results_count" class="badge" style="position:absolute; right:50px;top:13px;z-index:10">0</span>
+						<span class="input-group-btn"><button id="searchBut" class="btn" type="submit"><i class="fa fa-filter"></i></button></span>
+					</div>
+				</div>
+			</div>
+		</div>
+			
+		<div class="row">
+			<div class="col-md-12" id="all_regions">
+				<!-- REGION DATA -->
+				{% for r in regions %}
+				<div class="panel panel-default">
+				  <div class="panel-heading">
+				  	<div class="row" style="text-transform:none">
+				    	<div class="col-md-2 col-lg-1">
+				    		<h3 class="panel-title" style="text-transform:none">
+					    		<a href="/region/{{ r.locus_id }}/">{{ r.region_name }}</a>&nbsp;
+					    		<a role="button" data-toggle="collapse" href="#locus-{{ r.locus_id }}" aria-expanded="false" aria-controls="mappingFilters" class="collapsed">
+								<i class="fa fa-caret-square-o-down"></i></a>
+				    		</h3></div>
+				    	<div class="col-md-3 col-lg-2 text-center hidden-sm hidden-xs"><a href="/browser/hg38/?loc={{ r.seqid }}:{{ r.start }}-{{ r.end }}">{{ r.seqid }}:{{ r.start }}-{{ r.end }}</a></div>
+				    	<div class="col-md-1 col-lg-2 text-center hidden-sm hidden-xs">{% for m in r.markers %}<a href="/marker/{{ m }}/">{{ m }}</a> &thinsp;{% endfor %}</div>
+				    	<div class="col-md-1 col-lg-2 text-center hidden-sm hidden-xs">{% for ens, gene in r.cand_genes.items %}<a href="/gene/{{ ens }}/">{{ gene.symbol }}</a> &thinsp;{% endfor %}</div>
+				    	<div class="col-md-5"><div class="pull-right">{% show_small_disease_bar r.all_diseases %}</div></div>
+				    </div>
+				  </div>
+				  <div class="panel-body collapse region" id="locus-{{ r.locus_id }}" aria-expanded="false">
+				  	<div class="row">
+				  		<div class="col-md-6">
+					  		<h4>Hits</h4>
+					  		<table class="table table-responsive table-condensed">
+					  		<tr><thead>
+					  			<th>Chr Band</th>
+					  			<th>Position</th>
+					  			<th>Marker</th>
+					  			<th>P Value</th>
+					  			<th>OR (95% CI)</th>
+					  			<th>Risk Allele</th>
+					  			<th>Study</th>
+					  		</thead></tr>
+						  	{% for h in r.hits %}
+						  	<tr>
+						  		<td><a href="/region/{{  h.disease_locus }}/">{{ h.chr_band }}</a></td>
+						  		<td><a href="/browser/hg38/?loc={{ h.current_pos }}">{{ h.current_pos }}</a></td>
+						  		<td><a href="/marker/{{ h.marker }}/">{{ h.published_marker }}</a>&nbsp;{{ h.alleles.major }}&gt;{{ h.alleles.minor }}</td>
+						  		<td>{% if h.p_value != None %}{{ h.p_value|stringformat:".2e" }}<sup>{{ h.p_val_src }}</sup>{% else %}&nbsp;{% endif %}</td>
+						  		<td>{% if h.odds_ratio != None %}{{ h.odds_ratio }}{% if h.or_bounds != None %}&nbsp;{{ h.or_bounds }}{% endif %}<sup>{{ h.or_src }}</sup>{% else %}&nbsp;{% endif %}</td>
+						  		<td>{% if h.risk_allele != None %}{{ h.risk_allele }}{% else %}&nbsp;{% endif %}</td>
+						  		<td><a href="/study/GDXHsS00{{ h.dil_study_id }}/">{{ h.dil_study_id }}</a></td>
+						  	</tr>
+							{% endfor %}
+							</table>
+							<hr />
+					  		<h4>Markers</h4>
+					  		<table class="table table-responsive table-condensed">
+					  		<tr><thead>
+					  			<th>Marker</th>
+					  			<th>Disease</th>
+					  			<th>Study</th>
+					  			<th>P Value</th>
+					  			<th>OR (95% CI)</th>
+					  			<th>Risk Allele</th>
+					  		</thead></tr>
+						  	{% for m in r.marker_stats %}
+						  	<tr>
+							  	<td><a href="/marker/{{ m.marker }}/">{{ m.marker }}</a></td>
+							  	<td style="font-size:0.8em">{% show_disease_bar dis_list=m.disease expand_od=True %}</td>
+							  	<td>{% if m.dil_study_id != None %}<a href="/study/GDXHsS00{{ m.dil_study_id }}/">{{ m.dil_study_id }}</a>{% else %}&nbsp;{% endif %}</td>
+							  	<td>{{ m.p_value|stringformat:".2e" }}</td>
+							  	<td>{{ m.odds_ratio|stringformat:".2f" }}</td>
+							  	<td>{{ m.risk_allele }}</td>
+						  	</tr>					  	
+							{% endfor %}
+						  	{% for m in r.extra_markers %}
+						  	<tr>
+							  	<td><a href="/marker/{{ m.marker }}/">{{ m.marker }}</a>&nbsp;{{ m.alleles.major }}&gt;{{ m.alleles.minor }}</td>
+							  	<td style="font-size:0.8em">{% show_disease_bar dis_list=m.disease expand_od=True %}</td>
+							  	<td>{% if m.dil_study_id != None %}<a href="/study/GDXHsS00{{ m.dil_study_id }}/">{{ m.dil_study_id }}</a>{% else %}&nbsp;{% endif %}</td>
+							  	<td>{% if m.p_value != None %}{{ m.p_value|stringformat:".2e" }}<sup>{{ m.p_val_src }}</sup>{% else %}&nbsp;{% endif %}</td>
+							  	<td>{% if m.odds_ratio != None %}{{ m.odds_ratio }}{% if m.or_bounds != None %}&nbsp;{{ m.or_bounds }}{% endif %}<sup>{{ m.or_src }}</sup>{% else %}&nbsp;{% endif %}</td>
+							  	<td>{% if m.risk_allele != None %}{{ m.risk_allele }}{% else %}&nbsp;{% endif %}</td>
+						  	</tr>	  	
+							{% endfor %}
+							</table>
+							<hr class="hidden-md hidden-lg" />
+					  	</div>
+				  		<div class="col-md-6">
+				  			<h4>Genes</h4>
+							<strong>Protein-coding Genes</strong>&nbsp;
+							{% for g in r.genes.region.coding %}<a href="/gene/{{ g|doc_id }}/">{{ g.symbol }}</a> &thinsp;{% endfor %}<br />
+							<strong>Non-coding Genes</strong>&nbsp;
+							{% for g in r.genes.region.non_coding %}<a href="/gene/{{ g|doc_id }}/">{{ g.symbol }}</a> &thinsp;{% endfor %}<br />
+							<strong>Protein Coding Genes +/-0.5Mb of Region</strong>&nbsp;
+							{% for g in r.genes.downstream.coding %}<a href="/gene/{{ g|doc_id }}/">{{ g.symbol }}</a> &thinsp;{% endfor %}
+							{% for g in r.genes.upstream.coding %}<a href="/gene/{{ g|doc_id }}/">{{ g.symbol }}</a> &thinsp;{% endfor %}<br />
+							<strong>Non-coding Genes +/-0.5Mb of Region</strong>&nbsp;
+							{% for g in r.genes.downstream.non_coding %}<a href="/gene/{{ g|doc_id }}/">{{ g.symbol }}</a> &thinsp;{% endfor %}
+							{% for g in r.genes.upstream.non_coding %}<a href="/gene/{{ g|doc_id }}/">{{ g.symbol }}</a> &thinsp;{% endfor %}<br />
+				  		</div>
+				  	</div>
+				  </div>
+				</div>
+				{% endfor %}
+			</div>
+		</div>
+	</div>
+</section>
+{% endblock %}
+
+{% block footer_js %}
+<script language="javascript" type="text/javascript">
+	$.expr[":"].containsNoCase = function(el, i, m) {
+	    var search = m[3];
+	    if (!search) return false;
+	    return eval("/" + search + "/i").test($(el).text());
+	};
+	$(document).ready(function() {
+	    // reset the search when the cancel image is clicked
+	    $('#searchBut').click(function() {
+	    	console.log($("#searchBut i").hasClass( "fa-ban" ))
+	    	if ($("#searchBut i").hasClass( "fa-ban" ))
+	        	resetSearch();
+	    });
+	    // cancel the search if the user presses the ESC key
+	    $('#txtSearch').keyup(function(event) {
+	        if (event.keyCode == 27) {
+	            resetSearch();
+	        }
+	    });
+	    // execute the search
+	    $('#txtSearch').keyup(function() {
+	        // only search when there are 3 or more characters in the textbox
+	        if ($('#txtSearch').val().length > 2) {	        	
+	            // hide all panels
+	        	$('#all_regions .panel').hide();
+	        	$('.region').collapse('hide');
+	            // show the matching rows (using the containsNoCase from Rick Strahl)
+	            var count = 0;
+	            
+	            $("#all_regions").find(".panel:containsNoCase("+ $('#txtSearch').val()+")").each(function(){
+	            	$(this).show()
+	            	$($(this).children('.region')).collapse('show')
+	            	count++;
+	            });
+	            
+	            // show the cancel search image
+	            $('#searchBut i').removeClass("fa-filter");
+	            $('#searchBut i').addClass("fa-ban");
+	            $('#filter_results_count').text(count);
+	        }
+	        else if ($('#txtSearch').val().length == 0) {
+	            // if the user removed all of the text, reset the search
+	            resetSearch();
+	        }
+	        // if there were no matching rows, tell the user
+	        if ($('#all_regions .panel:visible').length == 0) {
+	            // remove the norecords row if it already exists
+	            $('.norecords').remove();
+	            // add the norecords row
+	            $("#all_regions").parent().append('<div class="norecords col-md-6 col-md-offset-3"><div class="alert alert-danger" role="alert"><i class="fa fa-exclamation" aria-hidden="true"></i>&nbsp;<span class="sr-only">Error:</span>No records were found</div></div>');
+	        }
+	    });
+	});
+	function resetSearch() {
+	    // clear the textbox
+	    $('#txtSearch').val('');
+        $('#searchBut i').removeClass("fa-ban");
+        $('#searchBut i ').addClass("fa-filter");
+    	$('.region').collapse('hide');
+    	$('#all_regions .panel').show();
+	    // show all table rows
+	    $('#tblSearch tr').show();
+	    // remove any no records rows
+	    $('.norecords').remove();
+	    // remove the cancel search image
+	    $('#imgSearch').hide();
+	    // make sure we re-focus on the textbox for usability
+	//    $('#txtSearch').focus();
+	    $('#tblSearch tr td').removeClass('hilite_text');
+	    $('#filter_results_count').text(0);
+	}
+     
+</script>
+
+{% endblock %}

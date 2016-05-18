@@ -1,0 +1,196 @@
+@charset "UTF-8";
+/* CSS Document */
+
+
+
+html,body{
+    height: 100%
+}
+
+.navbar-default .navbar-nav>li>a {
+    color: #ffffff;
+}
+
+.navbar-default .navbar-nav>li>a:hover, .navbar-default .navbar-nav>li>a:focus {
+    color: #98978b;
+    background-color: transparent;
+}
+
+
+#wrapper {
+    min-height: 100%;
+    position:relative;
+}
+
+#content {
+    padding-bottom: 200px;
+}
+
+footer{
+    bottom: 0;
+    left: 0;
+    position: absolute;
+    right: 0;
+	padding-top:30px;
+	padding-bottom:30px;
+	background-color: #3e3f3a;
+	border-color: #3e3f3a;
+	margin-top: 30px;
+	color: #ffffff;
+	font-size: 0.9em;
+}
+
+footer a{
+	color: #FFF;
+}
+
+footer a:active, footer a:hover{
+	color: #FFF;
+}
+
+
+/* .disease-bar > li { */
+.disease-bar .btn-disease {
+	color: #FFFFFF;
+/*	padding: 5px 10px;
+	margin: 5px 0px;	*/
+	padding: 0.2em 0.4em;
+	margin: 0.2em 0.1em !important;
+	min-width: 45px;
+/*	opacity: 0.4; */
+	border-radius: 10%;
+	text-align: center;
+	font-size: inherit;
+}
+
+.disease-bar .dropdown-menu {
+	border-radius: 0;
+	border-width: 0px;
+	min-width: 45px;
+}
+
+.disease-bar > a:hover,
+.disease-bar .dropdown-menu > li > a, 
+.disease-bar .dropdown-menu > li > a:hover {
+	 color: #FFFF; text-decoration: none; 
+}
+
+.disease-bar > a:hover,
+.disease-bar > a.active, 
+.disease-bar .dropdown-menu > li {
+	opacity: 1;
+}
+
+/* Disease colors */
+  /* non-core disease */
+.aa, .AA {  background-color:#6f6f6f !important; }
+  
+  /* non-core disease */
+.alz, .ALZ {  background-color:#6f6f6f !important; }
+  
+  /* core-disease */
+.as, .AS {  background-color:#cab2d6 !important; }
+ .as_text {  color:#cab2d6; }
+  
+  /* core-disease */
+.atd, .ATD {  background-color:#e31a1c !important; }
+ .atd_text {  color:#e31a1c; }
+  
+  /* non-core disease */
+.bd, .BD {  background-color:#6f6f6f !important; }
+  
+  /* non-core disease */
+.cad, .CAD {  background-color:#6f6f6f !important; }
+  
+  /* core-disease */
+.cel, .CEL {  background-color:#33a02c !important; }
+ .cel_text {  color:#33a02c; }
+  
+  /* core-disease */
+.cro, .CRO {  background-color:#ff7f00 !important; }
+ .cro_text {  color:#ff7f00; }
+  
+  /* non-core disease */
+.dia, .DIA {  background-color:#6f6f6f !important; }
+  
+  /* non-core disease */
+.gra, .GRA {  background-color:#6f6f6f !important; }
+  
+  /* non-core disease */
+.ht, .HT {  background-color:#6f6f6f !important; }
+  
+  /* non-core disease */
+.hyp, .HYP {  background-color:#6f6f6f !important; }
+  
+  /* non-core disease */
+.ibd, .IBD {  background-color:#6f6f6f !important; }
+  
+  /* non-core disease */
+.iga, .IGA {  background-color:#6f6f6f !important; }
+
+  /* non-core disease */
+.ige, .IGE {  background-color:#6f6f6f !important; }
+.ige_text {  color:#fdbf6f; }
+  
+  /* non-core disease */
+.imn, .IMN {  background-color:#6f6f6f !important; }
+  
+  /* core-disease */
+.jia, .JIA {  background-color:#fdbf6f !important; }
+ .jia_text {  color:#fdbf6f; }
+  
+  /* non-core disease */
+.jra, .JRA {  background-color:#6f6f6f !important; }
+  
+  /* core-disease */
+.ms, .MS {  background-color:#6a3d9a !important; }
+ .ms_text {  color:#6a3d9a; }
+  
+  /* non-core disease */
+.nar, .NAR {  background-color:#6f6f6f !important; }
+  
+  /* core-disease */
+.pbc, .PBC {  background-color:#b2df8a !important; }
+ .pbc_text {  color:#b2df8a; }
+  
+  /* non-core disease */
+.psc, .PSC {  background-color:#6f6f6f !important; }
+  
+  /* core-disease */
+.pso, .PSO {  background-color:#b15928 !important; }
+ .pso_text {  color:#b15928; }
+  
+  /* core-disease */
+.ra, .RA {  background-color:#a6cee3 !important; }
+ .ra_text {  color:#a6cee3; }
+  
+  /* non-core disease */
+.sar, .SAR {  background-color:#6f6f6f !important; }
+  
+  /* non-core disease */
+.sjo, .SJO {  background-color:#6f6f6f !important; }
+  
+  /* core-disease */
+.sle, .SLE {  background-color:#ffd700 !important; }
+ .sle_text {  color:#ffd700; }
+  
+  /* non-core disease */
+.ssc, .SSC {  background-color:#6f6f6f !important; }
+  
+  /* core-disease */
+.t1d, .T1D {  background-color:#1f78b4 !important; }
+ .t1d_text {  color:#1f78b4; }
+  
+  /* non-core disease */
+.t2d, .T2D {  background-color:#6f6f6f !important; }
+  
+  /* core-disease */
+.uc, .UC {  background-color:#fb9a99 !important; }
+ .uc_text {  color:#fb9a99; }
+  
+  /* non-core disease */
+.vit, .VIT {  background-color:#6f6f6f !important; }
+  
+/* Other styles used by criteria modules */
+.od, .OD {  background-color:#6f6f6f !important; }
+.od_text {  color:#6f6f6f; }

@@ -1,0 +1,25 @@
+{% extends "section.html" %}
+{% block section_js %}
+{% load filter_tags %}
+<script language="javascript" type="text/javascript">
+$(document).ready(function() {
+	sections.get_publication_details("table-pubs-{{ feature|doc_id }}", {{ feature|doc_attr:"pmids"|safe }})
+} );
+</script>
+{% endblock %}
+
+{% block section %}
+<table id="table-pubs-{{ feature|doc_id }}" class="display responsive table table-striped table-condensed">
+	<thead>
+		<tr>
+			<th>PMID</th>
+			<th class="visible-md visible-lg">Title</th>
+			<th class="visible-md visible-lg">First Author</th>
+			<th>Journal</th>
+			<th>Disease(s)</th>
+			<th>Date</th>
+		</tr>
+	</thead>
+	<tbody></tbody>
+</table>
+{% endblock %}

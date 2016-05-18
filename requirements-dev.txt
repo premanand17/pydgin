@@ -1,13 +1,13 @@
-Django==1.8.6
--e git+http://github.com/django-tastypie/django-tastypie#egg=tastypie
-#django-tastypie==0.12.1
+Django==1.8.13
 psycopg2==2.6.1
-python-dateutil==2.4.2
-python-mimeparse==0.1.4
+python-dateutil==2.5.3
+python-mimeparse==1.5.2
 python3-memcached==1.51
-requests==2.8.1
+requests==2.10.0
 six==1.9.0
-urllib3==1.12
+urllib3==1.15.1
 selenium==2.48.0
 PyVirtualDisplay==0.1.5
-mod-wsgi==4.4.21
+mod-wsgi==4.5.2
+pyRserve==0.8.4
+ftputil==3.3.1

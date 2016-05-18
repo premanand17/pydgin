@@ -1,0 +1,111 @@
+{% extends "base.html" %}
+{% block title %}ImmunoBase - Genome Browser{% endblock %}
+
+
+{% block header %}
+{% load staticfiles %}
+<!-- IGV JS -->
+<!-- <link rel="stylesheet" type="text/css" href="//igv.org/web/beta/igv-beta.css"> -->
+<!-- <link rel="stylesheet" type="text/css" href="{% static "css/igv-beta.css" %}"> -->
+<link rel="stylesheet" type="text/css" href="{% static "css/igv-0.9.3.css" %}">
+{% endblock %}
+
+{% block footer_js %}
+{% load staticfiles %}
+	<!-- IGV JS -->
+	<!-- <script type="text/javascript" src="//igv.org/web/beta/igv-beta.js"></script> -->
+	<!-- <script type="text/javascript" src="{% static "js/igv-beta.js" %}"></script> -->
+	<script type="text/javascript" src="{% static "js/igv-0.9.3.js" %}"></script>
+	
+	<script type="text/javascript">
+		function switch_genomes(){
+			genome = $("#genomeSelect").val()
+			window.location.href = "/browser/"+genome;
+		}	
+	
+		$(document).ready(function() {		
+		    var div, options, browser;
+		    div = $("#igv-{{ genome }}")[0];
+		    options = {
+		    	showKaryo: false,
+		    	showIdeogram: true,
+				showCommandBar: true,
+				showNavigation: true,
+				genome: "{{ genome }}",
+				locus: "{{ locus }}",
+				flanking: 1000,
+				search: {
+					url: "/rest/locations/?format=json&feature=$FEATURE$&build={{ genome }}",
+					coords: 1,
+					chromosomeField: "chr",
+					startField: "start",
+					endField: "end"
+				},
+	            formats: {
+	                gwasSNPS: {
+	                    coords: 0,
+	                    chr: 0,
+	                    start: 1,
+	                    fields: ["CHR", "POS", "NAME", "P"]
+	                }
+	            },
+				tracks: [
+					{
+						type: "sequence", 
+						order: -9999
+					},{% for t in tracks %}
+					{{% for k,v in t.items %}
+						{{ k }}: "{{ v }}",{% endfor %}
+					},{% endfor %}
+				],
+		    };
+		    browser = igv.createBrowser(div, options);
+		} );
+	</script>
+{% endblock %}
+
+{% block content %}	
+<section>
+	<div class="container-fluid">	
+		<div class="row">
+			<div class="col-md-12 page-header" style="margin-top:0px;">
+				<div class="row">
+					<div class="col-md-6"><h2 style="margin-top:0px; margin-bottom:0px;">{{ title }}</h2></div>
+					<div class="col-md-6">
+						<div class="pull-right">
+							<div class="form-group" style="width:100%">
+								<select class="form-control input-sm" name="genomeSelect" id="genomeSelect" onchange="switch_genomes()" style="width:100%">
+						{% for g, details in genome_options.items %}
+									<option id="genome-{{ g }}" value="{{ g }}"{% if g ==  genome %} selected="selected"{% endif %}>{{ details.display_name }}</option>
+						{% endfor %}
+								</select>
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+		
+		<div class="row">
+			<div class="col-md-12">
+				<div class="panel panel-default">
+					<div class="panel-heading" name="add_remove_tracks">
+						<h3 class="panel-title">Show/Hide Tracks
+						<a role="button" data-toggle="collapse" href="#add_remove_tracks-list" aria-expanded="false" aria-controls="mappingFilters" class="collapsed">
+						<i class="fa fa-caret-square-o-down"></i></a></h3>
+					</div>
+					<div class="panel-body collapse" id="add_remove_tracks-list" name="add_remove_tracks-list" aria-expanded="false" style="height: 30px;">
+					</div>
+				</div>
+			</div>
+		</div>
+		
+		<div class="row">
+			<div class="col-md-12">
+				<div id="igv-{{ genome }}" style="height: auto"></div>
+			</div>
+		</div>
+		
+	</div>
+</section>
+{% endblock %}

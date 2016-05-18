@@ -1,0 +1,78 @@
+{% extends "sections.html" %}
+
+{% load filter_tags %}
+{% load disease_tags %}
+{% block feature %}
+<div class="container-fluid">
+	<p>{{ f|doc_attr:"description" }}</p>
+
+	<div class="panel panel-default">
+	<div class="panel-heading">
+	<h3 class="panel-title">Curated Regions <a role="button" data-toggle="collapse" href="#curated_regions" aria-expanded="false" aria-controls="curated_regions"><i class="fa fa-caret-square-o-down"></i></a></h3>
+	</div>
+	<div class="panel-body collapse in" id="curated_regions" name="curated_regions" aria-expanded="false">
+
+	<p>More details about the regions are available <a href="/region/table/{{ f|doc_attr:"code"|upper }}/">here</a>.</p>
+	{% for region in f|doc_attr:"regions" %}
+		{% if forloop.first %}
+			<table id="regions" class="table table-responsive table-striped table-condensed">
+			<thead>
+			<th>Region</th>
+			<th>Position</th>
+			<th>Genes</th>
+			<th>Markers</th>
+			<th>Diseases</th>
+			</thead>
+			<tbody>
+		{% endif %}
+		<tr>
+		<td nowrap>{{ region.region_name }}</td>
+		<td nowrap><a href="/browser/hg38/?loc={{ region.seqid }}:{{ region.start }}-{{ region.end }}">{{ region.seqid }}:{{ region.start }}-{{ region.end }}</a></td>
+		<td>{% for ens_id, g in region.cand_genes.items %}<a href="/gene/{{ ens_id }}">{{ g|doc_attr:'symbol' }} </a>{% endfor %}</td>
+		<td>{% for m in region.markers %}<a href="/marker/{{ m }}">{{ m }} </a>{% endfor %}</td>
+		<td>{% show_disease_bar region.diseases expand_od=True %}</td>
+		</tr>
+		{% if forloop.last %}
+			</tbody></table>
+		{% endif %}
+	{% endfor %}
+	</div>
+	</div>
+
+	<div class="panel panel-default">
+	<div class="panel-heading">
+	<h3 class="panel-title">Curated Studies <a role="button" data-toggle="collapse" href="#curated_studies" aria-expanded="false" aria-controls="curated_studies"><i class="fa fa-caret-square-o-down"></i></a></h3>
+	</div>
+	<div class="panel-body collapse in" id="curated_studies" name="curated_studies" aria-expanded="false">
+	{% for study in f|doc_attr:"studies" %}
+		{% if forloop.first %}
+			<table id="studies" class="table table-responsive table-striped table-condensed">
+			<thead>
+			<th>Study ID</th>
+			<th>Title</th>
+			<th>Publication</th>
+			<th>Diseases</th>
+			</thead>
+			<tbody>
+		{% endif %}
+		<tr>
+		<td><a href="/study/GDXHsS00{{ study|doc_attr:"study_id" }}/">{{ study|doc_attr:"study_id" }}</a></td>
+		<td>{{ study|doc_attr:"study_name" }}</td>
+		<td><a href="http://www.ncbi.nlm.nih.gov/pubmed/{{ study|doc_attr:"principal_paper" }}?dopt=abstract" target="_blank">{{ study|doc_attr:"author" }} {{ study|doc_attr:"journal" }}, {{ study|doc_attr:"date" }}</a></td>
+		<td>{% show_disease_bar study|doc_attr:"diseases" expand_od=True %}</td>
+		</tr>
+		{% if forloop.last %}
+			</tbody></table>
+		{% endif %}
+	{% endfor %}
+	</div>
+</div>
+{% endblock %}
+{% block extra_footer_js %}
+<script language="javascript" type="text/javascript">
+$(document).ready(function() {
+	$('table#regions').DataTable({"dom": "Bfrtip", "buttons": ['copy', 'csv', 'excel', 'pdf', 'print'], "aaSorting": []});
+	$('table#studies').DataTable({"dom": "Bfrtip", "buttons": ['copy', 'csv', 'excel', 'pdf', 'print'], "aaSorting": []});
+});
+</script>
+{% endblock %}

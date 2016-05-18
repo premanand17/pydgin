@@ -1,0 +1,212 @@
+{% extends "base.html" %}
+{% block title %}Welcome to ImmunoBase{% endblock %} 
+{% block content %}
+{% load disease_tags %}
+
+<section>
+	<div class="container-fluid">
+	<h3>ImmunoBase FAQ</h3>
+	<div class="panel panel-success">
+
+	<div class="panel-heading">
+	<h3 class="panel-title">Criteria FAQ  <a role="button" data-toggle="collapse" href="#criteria_faq" aria-expanded="true"><i class="fa fa-caret-square-o-down"></i></a></h3>
+	</div>
+
+	<div class="panel-body collapse in" id="criteria_faq" name="criteria_faq" aria-expanded="false">
+
+	<!----- What is Criteria -->
+	<h3>What is meant by Criteria?</h3>
+	<p>
+		As part of an ongoing effort to summarise potential support for a
+		biological feature (<i>i.e. </i> <strong>marker</strong>, <strong>gene</strong>,
+		<strong>genetic locus</strong> or <strong>study</strong>) for a
+		role in a particular phenotype, we have added the ability to
+		compare diseases based on a set of criteria (see <a href="#criteria_description">
+		Criteria Descriptions</a> section). Using a
+		variety of electronic and manual methods (which we call Criteria)
+		each feature is tagged using the set of phenotypes listed in the
+		table below. This means that we can:
+
+		<ul>
+			<li>Highlight visually which genes, markers, loci and studies
+				may be important in one or more phenotypes.</li>
+			<li>Provide better search by sorting terms based on an
+				internal score derived from this tagging.</li>
+			<li>Provide easy to access cross links between features by
+				shared phenotype.</li>
+		</ul>
+	</p>
+
+	<!----- Supported Phenotypes -->
+	<h3>Supported Phenotypes in ImmunoBase</h3>
+	<p>
+	ImmunoBase supports the following disease phenotypes. The disease bar represents
+	these 12 core diseases plus other diseases ('OD') of interest.
+		<div class="row">
+			<div class="col-xs-12">{% show_disease_bar %}</div>
+		</div>
+
+    <br/>
+	The results of these analyses are located in the top right corner of feature pages (see examples below). 
+	In each page, where they are displayed, there is a criteria section, allowing the user to “drill-down”
+	and obtain the specific criteria met for that feature to have been tagged with a disease. 
+	A full description of all the criteria currently implemented, and their context is outlined
+	in the <a href="#criteria_description">Criteria Descriptions</a> section.
+	<br/><br/>
+
+	Below are some examples of disease comparisons on this site.
+	<dl class="dl-horizontal">
+	<dt>Search:</dt><dd><a href="/search/?idx=REGION&query=10p15.1">10p15.1</a></dd>
+	<dt>Marker Page:</dt><dd><a href="/marker/rs2476601">rs2476601</a></dd>
+	<dt>Gene Page:</dt><dd><a href="/gene/ENSG00000134242">PTPN22</a></dd>
+	<dt>Locus Page:</dt><dd><a href="/region/1p13.2_019">1p13.2</a></dd>
+	<dt>Study Page:</dt><dd><a href="/study/GDXHsS00004">GDxHsS00004 (Barrett et al)</a></dd>
+	<dl>
+  	</p>
+
+    <h3 id="criteria_description">Criteria Descriptions</h3>
+	<!----- Marker Criteria -->
+	<p id="gene_criteria" class="bg-success" style="padding:5px"><strong>Marker Criteria Description</strong></p>
+	<p>
+	<table class="table table-responsive table-condensed">
+	<thead>
+	<tr>
+	<th>Criteria</th>
+	<th>Description</th>
+	</tr>
+	</thead>
+	<tbody>
+	
+	<tr id="marker_is_gwas_significant_in_study">
+	<td width="250px">Marker is GW-Significant in a Study</td>
+	<td>A <strong>GW-significant marker in a study</strong> is defined as a marker detected in one of our curated studies that meets genome-wide (GW) significance in that study. 
+	The P value from the study is shown.</td>
+	</tr>
+
+	<tr id="marker_is_gwas_significant_in_ic">
+	<td width="250px">Marker is GW-Significant on the ImmunoChip</td>
+	<td>An <strong>Immunochip significant marker</strong> is defined as a marker that has been typed on the ImmunoChip Custom Genotype Array and reaches a significance level of P&lt;5x10<sup>-08</sup>. The P value from the assay is shown.</td>
+	</tr>
+	
+	<tr id="rsq_with_index_snp">
+	<td width="250px">Marker is in R²&gt;0.8 with an index SNP</td>
+	<td>A <strong>marker is in R²&gt;0.8 with an index SNP</strong> is defined as an index snp in a curated study being in R²&gt;0.8 with this marker. 
+	The R² value between the 2 markers is shown.
+	</td>
+	</tr>
+	
+	<tr id="is_marker_in_mhc">
+	<td width="250px">Feature lies in MHC region</td>
+	<td>A <strong>feature lying in the MHC region</strong> is defined as any feature that is physically located within or overlaps the bounds of the Human MHC Region (chr6:25,000,000-35,000,000).</td>
+	</tr>
+	
+	<tr id="is_an_index_snp">
+	<td width="250px">Marker is an index SNP in a Region</td>
+	<td>An <strong>index marker in a region</strong> is defined as a marker used to build a curated disease region.</td>
+	</tr>
+	
+	</tbody>
+	</table>
+	</p>
+	
+	  	
+	<!----- Gene Criteria -->
+	<p id="gene_criteria" class="bg-success" style="padding:5px"><strong>Gene Criteria Description</strong></p>
+	<p>
+	<table class="table table-responsive table-condensed">
+	<thead>
+	<tr>
+	<th>Criteria</th>
+	<th>Description</th>
+	</tr>
+	</thead>
+	<tbody>
+	
+	<tr id="cand_gene_in_study">
+	<td width="250px">Candidate Gene in a Study</td>
+	<td>A <strong>candidate gene in a study</strong> is defined&nbsp;as a gene cited in the principal paper of one of our curated studies.</td>
+	</tr>
+	
+	<tr id="gene_in_region">
+	<td width="250px">Gene is located within a Region</td>
+	<td>A <strong>gene in a region</strong> is defined as a gene that is physically located within or overlaps the bounds of a region.</td>
+	</tr>
+	
+	<tr id="cand_gene_in_region">
+	<td width="250px">Candidate Gene in a Region</td>
+	<td>A <strong>gene in a region</strong> is defined as a gene that is physically located within or overlaps the bounds of a region.</td>
+	</tr>
+	
+	<tr id="is_gene_in_mhc">
+	<td width="250px">Feature lies in MHC region</td>
+	<td>A <strong>feature lying in the MHC region</strong> is defined as any feature that is physically located within or overlaps the bounds of the Human MHC Region (chr6:25,000,000-35,000,000).</td>
+	</tr>
+	
+	<tr id="exonic_index_snp_in_gene">
+	<td width="250px">Exonic index SNP in this Gene</td>
+	<td>An <strong>exonic index snp in this gene</strong> shows genes which contain an index snp from one of our curated studies that lies within an exon of this gene.</td>
+	</tr>
+	
+	</tbody>
+	</table>
+	</p>
+	
+	  	
+	<!----- Region Criteria -->
+	
+	<p id="region_criteria" class="bg-success" style="padding:5px"><strong>Region Criteria Description</strong></p>
+	<p>
+	<table class="table table-responsive table-condensed">
+	<thead>
+	<tr>
+	<th>Criteria</th>
+	<th>Description</th>
+	</tr>
+	</thead>
+	<tbody>
+
+	<tr id="is_region_for_disease">
+	<td width="250px">Feature overlaps a disease region</td>
+	<td>A <strong>feature overlaps a disease region</strong> is defined as a region that has has been curated and tagged with diseases.</td>
+	</tr>
+
+	<tr id="is_region_in_mhc">
+	<td width="250px">Feature lies in MHC region</td>
+	<td>A <strong>feature lying in the MHC region</strong> is defined as any feature that is physically located within or overlaps the bounds of the Human MHC Region (chr6:25,000,000-35,000,000).</td>
+	</tr>
+
+	</tbody>
+	</table>
+	</p>
+	
+	  	
+	<!----- Study Criteria -->
+	
+	<p id="study_criteria" class="bg-success" style="padding:5px"><strong>Study Criteria Description</strong></p>
+	<p>
+	<table class="table table-responsive table-condensed">
+	<thead>
+	<tr>
+	<th>Criteria</th>
+	<th>Description</th>
+	</tr>
+	</thead>
+	<tbody>
+	
+	<tr id="study_for_disease">
+	<td width="250px">Study for a Disease</td>
+	<td>A <strong>study for a disease</strong> is a curated study that covers a disease.</td>
+	</tr>
+	
+	</tbody>
+	</table>
+	</p>
+	
+	
+	</div>
+	
+	</div>
+	</div>
+</section>
+
+{% endblock %}

@@ -1,0 +1,34 @@
+{% extends "sections.html" %}
+
+{% block staticfiles %}
+	{% load staticfiles %}
+	<script src={% static "js/sections.js" %}></script>
+	<script src={% static "js/criteria.js" %}></script>
+	<script src={% static "gene/gene_page.js" %}></script>
+{% endblock %}
+
+{% block sections %}
+{% load filter_tags %}
+{% load criteria_tags %}
+{% for section_title, section_options in sections.items %}
+{% with section=section_title.split|join:"_" %}
+
+	{% if section_title == 'publications' %}
+		{% include 'sections/pub.html' with feature=f %}
+	{% elif section_title == 'igvBrowser' %}
+		{% include 'sections/igv-browser.html' with f=f %}
+	{% elif section_title == 'criteria' %}
+		
+		{% show_feature_criteria_details feature_id=f|doc_id feature_type=appname feature_doc=f %}
+		
+	{% elif section_title == 'study' %}
+		{% include 'study/studies_section.html' with ens_id=f|doc_id %}
+	{% else %}
+		{% with "gene/"|add:section|add:"_section.html" as template %}
+			{% include template  with gene=f %}
+		{% endwith %}
+	{% endif %}
+{% endwith %}
+{% endfor %}
+
+{% endblock %}

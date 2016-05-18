@@ -1,0 +1,37 @@
+{% extends "sections.html" %}
+{% block staticfiles %}
+	{% load staticfiles %}
+	<script src={% static "js/sections.js" %}></script>
+	<script src={% static "js/criteria.js" %}></script>
+{% endblock %}
+
+{% block sections %}
+{% load filter_tags %}
+{% with nfeatures=features|length %}
+{% for feature in features %}
+	{% if forloop.counter == 1 or forloop.counter == 3 %}<div class="row">{% endif %}
+		<div class="col-md-{% if nfeatures > 1 %}6{% else %}12{% endif %}">
+
+			{% for section_title, section_options in sections.items %}
+				{% with section=section_title.split|join:"_" %}
+						{% if section_title == 'publications' %}
+							{% include 'sections/pub.html' %}						
+						{% elif section_title == 'study' %}
+							{% include 'study/studies_section.html' with markers=f|doc_attr:"markers" %}
+						{% elif section_title == 'criteria' %}
+						    {% include 'sections/criteria.html' with feature_id=f|doc_id %}
+						{% elif section_title == 'igvBrowser' %}
+							{% include 'sections/igv-browser.html' with f=f %}
+						{% else %}
+							{% with "region/"|add:section|add:"_section.html" as template %}
+								{% include template %}
+							{% endwith %}
+						{% endif %}
+
+				  {% endwith %}
+			{% endfor %}
+		</div>
+	</div>
+{% endfor %}
+{% endwith %}
+{% endblock %}

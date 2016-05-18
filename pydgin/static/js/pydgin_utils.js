@@ -19,5 +19,10 @@
 	pydgin_utils.add_spinner_before = function(parent_id, spinner_id) {
 		$('#'+parent_id).before('<i id="'+spinner_id+'" class="fa fa-spinner fa-spin"></i>');
 	}
+	
+	// escape colon and dot in element id
+	pydgin_utils.escape_id = function(id) {
+		 return id.replace( /(:|\.|\[|\])/g, "\\$1" );
+	}
 }( window.pydgin_utils = window.pydgin_utils || {}, jQuery ));
 

@@ -1,0 +1,42 @@
+{% extends "section.html" %}
+{% block section %}
+{% load filter_tags %}
+<table class="table table-striped table-condensed">
+		<thead><th>ID</th><th>Alleles</th><th>Location</th><th>Genome Build</th><th>Source</th></thead>
+	{% if f %}
+		<td>{{ f|doc_attr:"id" }}</td>
+		<td>{{ f|doc_attr:"ref" }}/{{ f|doc_attr:"alt" }}</td>
+		<td>
+		{% with loc=f|doc_attr:"seqid" %}
+			<a href="/browser/hg{{ f|doc_attr:"marker_build" }}/?loc=chr{{ loc }}:{{ f|doc_attr:"start"|add:"-10000" }}-{{ f|doc_attr:"start"|add:"10000" }}">chr{{ loc }}: {{ f|doc_attr:"start" }}</a>
+		{% endwith %}
+		</td>
+		<td>{{ f|doc_attr:"marker_build" }}</td>
+		<td>{{ f|doc_idx }}</td>
+	{% endif %}
+		
+	{% for dbsnp_doc in old_dbsnp_docs %}
+		<tr><td>{{ dbsnp_doc|doc_attr:"id" }}</td>
+		<td>{{ dbsnp_doc|doc_attr:"ref" }}/{{ dbsnp_doc|doc_attr:"alt" }}</td>
+		<td>
+		{% with loc=dbsnp_doc|doc_attr:"seqid" %}
+			<a href="/browser/hg{{ dbsnp_doc|doc_attr:"marker_build" }}/?loc=chr{{ loc }}:{{ dbsnp_doc|doc_attr:"start"|add:"-10000" }}-{{ dbsnp_doc|doc_attr:"start"|add:"10000" }}">chr{{ loc }}: {{ dbsnp_doc|doc_attr:"start" }}</a>
+		{% endwith %}
+		</td>
+		<td>{{ dbsnp_doc|doc_attr:"marker_build" }}</td>
+		<td>{{ dbsnp_doc|doc_idx }}</td></tr>
+	{% endfor %}
+	
+
+	{% for ic_marker in ic %}
+		{% for build in ic_marker|doc_attr:"build_info" reversed %}
+			<tr><td>{{ ic_marker|doc_attr:"name" }}</td>
+			<td>{{ ic_marker|doc_attr:"allele_a" }}/{{ ic_marker|doc_attr:"allele_b" }}</td>
+			<td><a href="/browser/hg{{ build.build }}/?loc=chr{{ build.seqid }}:{{ build.position|add:"-10000" }}-{{ build.position|add:"10000" }}">chr{{ build.seqid }}: {{ build.position }}</a></td><td>{{ build.build }}</td>
+			<td>ImmunoChip</td>
+			</tr>
+		{% endfor %}
+	{% endfor %}
+</table>
+{% endblock %}
+	

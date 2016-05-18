@@ -1,0 +1,27 @@
+{% extends "section.html" %}
+{% block section %}
+{% load filter_tags %}{% load pydgin_tags %}
+<table class="table table-striped table-condensed">
+	{% with dbxrefs=gene|doc_attr:"dbxrefs" %}
+	{% for db, accs in dbxrefs.items|sort %}
+		{% if db != 'orthologs' %}
+		{% with dblink=db|db_link %}
+		<tr><td>{{ db|capfirst }}</td><td>
+			{% if dblink != "" %}
+				{% if accs|is_list %}
+					{% for acc in accs %}
+						<a data-toggle="tooltip" title="{{ dblink.about }}" href="{{ dblink.link }}{{ acc }}" target="_blank">{{ acc }}</a>&nbsp;
+					{% endfor %}
+				{% else %}
+					<a data-toggle="tooltip" title="{{ dblink.about }}" href="{{ dblink.link }}{{ accs }}" target="_blank">{{ accs }}</a>
+				{% endif %}
+			{% else %}
+				{{ accs }}
+			{% endif %}
+		</td></tr>
+		{% endwith %}
+		{% endif %}
+	{% endfor %}
+	{% endwith %}
+</table>
+{% endblock %}

@@ -1,0 +1,121 @@
+{% extends "section.html" %}
+{% block section_js %}
+	{% load staticfiles %}
+	<script src={% static "marker/ld.js" %}></script>
+	<script>
+	$(document).ready(function() {
+		if ($('#ldSearch').length)
+			search_engine.autocomplete('ldSearch', searchForm='ldForm');
+
+        if("{{ section }}" !== "") {
+        	// if section header is clicked run ld calc
+	        $("div[name={{ section }}]").on('click', function(e) {
+	        	if ($("#ld_result").html().length > 0)
+	        		return;
+				runner(e);
+			});
+
+	        // if section is shown run ld calc
+			setTimeout(is_section_open, 1000);
+        }
+
+        // if the ld options are changed run ld calc
+		$("#ldForm").on('submit keyup change', function(e) {
+			runner(e);
+		});
+
+		function runner(e) {
+			if( $("input[name*='window_size']").val() > 10000000 )
+				$("input[name*='window_size']").val(10000000)
+			ld.run($("input[name*='m1']").val(), $("#ldForm").serialize(), 'ld_result',
+			       $("input[name*='maf']").is(":checked"), $("input[name*='pos']").is(":checked"))
+			if(e !== undefined)
+				e.preventDefault();
+		}
+
+		function is_section_open(){
+			if($("#ldForm").parent().parent().hasClass('in'))
+				runner();
+		}
+	});
+	</script>
+{% endblock %}
+
+{% block section %}
+{% load filter_tags %}
+	<div class="well bs-component col-md-4">
+		<form id="ldForm" class="form-horizontal">
+			<fieldset>
+			{% if f %}
+				<h4>LD Search Options</h4>
+				<input id="ldSearch" type="hidden" name="m1" value="{{ f|doc_attr:'id' }}">
+			{% else %}
+				<div class="input-group">
+					<input id="ldSearch" type="text" class="form-control input-sm" name="m1" value="" placeholder="rs2476601">
+					<span class="input-group-btn">
+						<button class="btn btn-sm"><i class="fa fa-chevron-circle-right"></i></button>
+					</span>
+				</div>
+				<br>
+			{% endif %}
+				
+				<div class="form-group">
+					<div class="col-md-6">
+						<select name="build" class="form-control input-sm">
+							<option>GRCh38</option>
+							<option>GRCh37</option>
+						</select>
+					</div>
+					<div class="col-md-6">
+						<select name="dataset" class="form-control input-sm">
+						  <option>--EUR--</option>
+						  <option>GBR</option>
+						  <option>FIN</option>
+						  <option>IBS</option>
+						  <option>TSI</option>
+						  <option>CEU</option>
+						</select>
+					</div>
+				</div>
+				
+				<div class="form-group">
+					<label class="col-lg-4 control-label input-sm" style="padding-top:5px;" for="rsq">r<sup>2</sup></label>
+                   	<div class="col-lg-8"><input class="form-control input-sm" type="text" id="rsq" name="rsq" value="0.8"></div>
+				</div>
+				
+				<div class="form-group">
+					<label class="col-lg-4 control-label input-sm" style="padding-top:5px;" for="dprime">D'</label>
+					<div class="col-lg-8"><input class="form-control input-sm" type="text" id="dprime" name="dprime" value="0"></div>
+				</div>
+				
+				<div class="form-group">
+					<label class="col-lg-4 control-label input-sm" style="padding-top:5px;" for="window_size">window size</label>
+					<div class="col-lg-8"><input class="col-lg-10 form-control input-sm" type="text" id="window_size" name="window_size" value="1000000"></div>
+				</div>
+				
+				<div class="form-group">
+					<div class="col-md-4  col-lg-offset-4">			
+						 <div class="checkbox">
+						 	<label><input type="checkbox"name="maf"> MAF</label>
+						 </div>
+					</div>
+					<div class="col-md-4">
+						<div class="checkbox">
+							<label><input type="checkbox" name="pos"> Position</label>
+						</div>
+					</div>
+				</div>
+			</fieldset>
+		</form>
+	</div>
+
+<div class="col-md-8" id="ld_result"></div>
+
+<div class="col-md-12">
+	<div class="well"><p>Linkage disequilibrium (LD) statistics are calculated for {% if f %}{{ f|doc_attr:"id" }}{% else %}a given marker{% endif %},
+	using the 1000 genomes data release <a href="ftp://ftp.1000genomes.ebi.ac.uk/vol1/ftp/release/20130502/" target="_blank">May 2013</a>.
+	Calculations are performed with the snpStats R library, covering 1Mb either side of the marker;
+	and with the following filters applied: MAF &gt; 0.01, call rate &lt; 0.9, and chi-squared test for deviation from HWE &gt; 25.</p></div>
+</div>
+
+{% endblock %}

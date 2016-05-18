@@ -1,7 +1,8 @@
 (function( search_engine, $, undefined ) { 
 
 	// auto-completion for search engine
-	search_engine.autocomplete = function (searchId) {
+	search_engine.autocomplete = function (searchId, searchForm) {
+		searchForm = searchForm || "searchForm";
 		$( "#" + searchId ).autocomplete({
 	        source: function( request, response ) {
 	          $.ajax({
@@ -25,7 +26,7 @@
 	        },
 	        select: function(event, ui) {
 		       $( "#" + searchId ).val(ui.item.label);
-		       $('#searchForm').submit();
+		       $('#' + searchForm).submit();
 		    }
 	      });
 	}

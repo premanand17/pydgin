@@ -1,0 +1,52 @@
+{% extends "base.html" %}
+{% block title %}Welcome to ImmunoBase{% endblock %} 
+{% block content %}
+{% load disease_tags %}
+
+<section>
+	<div class="container ">
+	<h3>About ImmunoBase</h3>
+		<p>ImmunoBase is a web based resource focused on the genetics and
+			genomics of immunologically related human diseases. Our mission is to
+			provide a curated and integrated set of datasets and tools to support
+			and promote research in this area.</p>
+		<p>The current focus of the site is to integrate and curate
+			summary case/control association statistics from the consortium of 12
+			diseases originally targeted by the ImmunoChip consortium. The
+			following disease bar represents these 12 core diseases plus other
+			diseases ('OD') of interest.</p>
+		<div class="row">
+			<div class="col-xs-12 text-center">{% show_disease_bar %}</div>
+		</div>
+		<br>
+		<p>GWAS studies are identified from the literature, that are associated
+		with these diseases, and are curated to identify disease related regions.
+		Using a selection of criteria this enables
+		<strong>genes</strong> (<i>e.g. </i> <a href="/gene/ENSG00000134242/">PTPN22</a>),
+		<strong>markers</strong> (<i>e.g. </i> <a href="/marker/rs2476601/">rs2476601</a>), and
+		<strong>regions</strong> (<i>e.g. </i> <a href="/region/1p13.2_019/">1p13.2</a>) to be
+		tagged with the disease(s). These criteria are used throughout
+		the site to provide a disease bar for those features associated with the
+		immunologically related human diseases.
+		</p>
+		<p>The site also includes software tools for analysing the data and can be found in the Tools menu.</p>
+		<p>This web site was developed with support from the <a href="http://www-gene.cimr.cam.ac.uk" target="_blank">
+			Juvenile Diabetes Research Foundation Wellcome Trust Diabetes and Inflammation
+			Laboratory</a>. This resource is maintained by the ImmunoBase team.
+		</p>
+		<h3>ImmunoBase Team</h3>
+		<p>Juvenile Diabetes Research Foundation/Wellcome Trust Diabetes and Inflammation Laboratory:</p>
+		<div class='row'>
+			<div class="col-md-4"><strong>John Todd</strong><br>Director and Professor of Medical Genetics</div>
+			<div class="col-md-4"><strong>Oliver Burren</strong><br>Head of Genome Informatics</div>
+		</div>
+		<br>
+		<div class='row'>
+			<div class="col-md-4"><strong>Ellen Schofield</strong><br>Computer Officer/Bioinformatician</div>
+			<div class="col-md-4"><strong>Tim Carver</strong><br>Developer/Bioinformatician</div>
+			<div class="col-md-4"><strong>Premanand Achuthan</strong><br>Developer/Bioinformatician</div>
+		</div>
+	</div>
+</section>
+
+{% endblock %}

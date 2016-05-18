@@ -1,0 +1,67 @@
+{% extends "section.html" %}
+{% load filter_tags %}
+{% load pydgin_tags %}
+
+{% block section_js %}
+<script language="javascript" type="text/javascript">
+$(document).ready(function() {
+	
+    var div, options, browser;
+    div = $("#igv-{{ f|doc_id|replace_dot }}")[0];
+    options = {
+    		showKaryo: false,
+    		showIdeogram: false,
+            showCommandBar: false,
+            genome: "hg38",
+            //flanking: 100000,
+            locus: "{{ f|location }}",
+            formats: {
+                gwasSNPS: {
+                    coords: 0,
+                    chr: 0,
+                    start: 1,
+                    fields: ["CHR", "POS", "NAME", "P"]
+                }
+            },
+            tracks: [
+//				{
+//					type: "sequence", 
+//					order: -9999
+//				},
+            	{
+					withCredentials: true,
+					headers: {"X-CSRFToken": "{{ csrf_token }}" },
+					url: "/marker/stats/?chr={{ f|chromosome }}&idx_type=cro_liu",
+					name: "CRO - Liu",
+					featureType: "gwas",
+                    format: 'gwasSNPS',
+					order: 2,
+					variantURL: "/marker/",
+					colorScale:  {
+						thresholds: [5e-8, 1e-5, 0.05],
+						colors: ['rgb(0,102,51)', 'rgb(122,179,23)', 'rgb(158,213,76)', 'rgb(227,238,249)']
+					},
+				},
+//            	{
+//					url: "/static/data/hg38-disease_locus.gff",
+//					name: "Regions",
+//					displayMode: "SQUISHED",
+//					order: 1
+//				},
+           		{
+					url: "/static/data/igv/hg38/Homo_sapiens.GRCh38.83.bed",
+					name: "Genes",
+					displayMode: "EXPANDED",
+					order: 10000
+				}
+            ]
+    };
+    browser = igv.createBrowser(div, options);
+} );
+</script>
+{% endblock %}
+
+{% block section %}
+<div id="igv-{{ f|doc_id|replace_dot }}" style="height: auto"></div>
+{% endblock %}
+

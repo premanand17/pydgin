@@ -1,0 +1,33 @@
+{% extends "section.html" %}
+{% block section %}
+
+{% if f %}
+{% load marker_tags %}
+{% load filter_tags %}
+
+	{% with functional_info=f|marker_functional_info %}
+	{% if functional_info %}
+		Gene function properties for {{ f|doc_attr:"id" }} as derived from
+		<a href="ftp://ftp.ncbi.nlm.nih.gov/snp/specs/dbSNP_BitField_latest.pdf" target="_blank">dbSNP</a>:
+		<ul>
+		{% for gene_function, value in functional_info.items %}
+			{% if value %}<li>{{ gene_function }} <i class="fa fa-check"></i></li>{% endif %}
+		{% endfor %}
+		</ul>
+	{% endif %}
+	{% endwith %}
+
+	{% with genes=f|gene_info %}
+		{% if genes %}
+			Gene(s) at location of variation:&nbsp;
+			{% for gene, ens_id in genes.items %}
+				<a href="/gene/{{ ens_id }}/">{{ gene }}</a>&nbsp;
+			{% endfor %}
+			<br>
+		{% endif %}
+	{% endwith %}
+
+{% else %}
+N/A
+{% endif %}
+{% endblock %}

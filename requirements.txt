@@ -1,6 +1,7 @@
 -r ./requirements-dev.txt
 
 # local apps
--e git+http://github.com/D-I-L/django-elastic.git#egg=elastic
--e git+http://github.com/D-I-L/django-data-pipeline.git#egg=data_pipeline
--e git+http://github.com/D-I-L/django-pydgin-auth.git#egg=pydgin_auth
+-e git+https://github.com/D-I-L/django-elastic.git#egg=elastic
+-e git+https://github.com/D-I-L/django-data-pipeline.git#egg=data_pipeline
+-e git+https://github.com/D-I-L/django-pydgin-auth.git#egg=pydgin_auth
+-e git+https://github.com/D-I-L/django-criteria.git@develop#egg=criteria

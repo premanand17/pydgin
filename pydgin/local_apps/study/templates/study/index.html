@@ -1,0 +1,26 @@
+{% extends "sections.html" %}
+{% block staticfiles %}
+	{% load staticfiles %}
+	<script src={% static "js/sections.js" %}></script>
+	<script src={% static "js/criteria.js" %}></script>
+{% endblock %}
+
+{% block sections %}
+
+{% load filter_tags %}
+
+{% for section_title, section_options in sections.items %}
+{% with section=section_title.split|join:"_" %}
+	{% if section_title == 'overview' %}
+		{% include 'study/overview_section.html' %}
+	{% elif section_title == 'publications' %}
+		{% include 'sections/pub.html' with feature=f %}
+	{% elif section_title == 'study association' %}
+		{% include 'study/study_association_section.html' with feature=f %}
+	{% elif section_title == 'criteria' %}
+		{% include 'sections/criteria.html' with feature_id=f|doc_id %}
+	{% endif %}
+{% endwith %}
+{% endfor %}
+
+{% endblock %}

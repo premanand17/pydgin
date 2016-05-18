@@ -1,0 +1,4 @@
+{"mapping":{"properties": {"gene_sets": {"type": "string"}, "source": {"type": "string"}, "is_public": {"type": "string"}, "pathway_name": {"type": "string"}, "pathway_url": {"type": "string"}}},
+"docs":[
+{"source": "kegg", "gene_sets": ["ENSG00000168610", "ENSG00000183709"], "pathway_name": "KEGG_JAK_STAT_SIGNALING_PATHWAY", "pathway_url": "http://www.broadinstitute.org/gsea/msigdb/cards/KEGG_JAK_STAT_SIGNALING_PATHWAY", "is_public": false},
+{"source": "kegg", "gene_sets": ["ENSG00000006606", "ENSG00000183709"], "pathway_name": "KEGG_CYTOKINE_CYTOKINE_RECEPTOR_INTERACTION", "pathway_url": "http://www.broadinstitute.org/gsea/msigdb/cards/KEGG_CYTOKINE_CYTOKINE_RECEPTOR_INTERACTION", "is_public": false}]}

@@ -13,5 +13,8 @@ settings_secret.py
 *_initial.py
 log
 apache
+igv
 tmp
 migrations
+
+*.py~

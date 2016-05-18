@@ -10,15 +10,15 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/1.8/ref/settings/
 """
 
-from pydgin.settings_secret import *
-# Build paths inside the project like this: os.path.join(BASE_DIR, ...)
-import os
 import sys
+import os
 
+# Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 PROJECT_DIR = os.path.dirname(__file__)
-
 sys.path.insert(0, os.path.join(PROJECT_DIR, 'local_apps'))
+from pydgin.settings_secret import *
+from pydgin.pydgin_settings import *
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/1.8/howto/deployment/checklist/
@@ -26,6 +26,7 @@ sys.path.insert(0, os.path.join(PROJECT_DIR, 'local_apps'))
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
+TESTMODE = sys.argv[1:2] == ['test']
 
 ALLOWED_HOSTS = []
 
@@ -39,19 +40,28 @@ INSTALLED_APPS = (
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'core',
     'data_pipeline',
     'elastic',
     'search_engine',
     'gene',
     'marker',
     'disease',
+    'region',
+    'study',
+    'criteria',
+    'browser',
     'rest_framework',
     'rest_framework_swagger',
     'rest_framework.authtoken',
     'pydgin_auth',
-    'auth_test',
+    # 'auth_test',
     'mod_wsgi.server',
 )
+
+if 'data_pipeline' in INSTALLED_APPS:
+    from data_pipeline import app_settings
+    ELASTIC['default']['IDX'].update(app_settings.ELASTIC)
 
 MIDDLEWARE_CLASSES = (
     'django.contrib.sessions.middleware.SessionMiddleware',
@@ -79,14 +89,14 @@ TEMPLATES = [
                 'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
+                # add pydgin context processors below
+                'core.context_processors.cdn',
+                'core.context_processors.appname',
+                'core.context_processors.recaptcha',
             ],
         },
     },
 ]
-
-WSGI_APPLICATION = 'pydgin.wsgi.application'
-#######
-WSGI_APPLICATION = 'pydgin.wsgi.application'
 
 
 REST_FRAMEWORK = {
@@ -96,6 +106,8 @@ REST_FRAMEWORK = {
         'rest_framework.authentication.SessionAuthentication',
     )
 }
+
+WSGI_APPLICATION = 'pydgin.wsgi.application'
 
 AUTH_PROFILE_MODULE = "pydgin_auth.UserProfile"
 # Import Applicaton-specific Settings
@@ -205,6 +217,16 @@ LOGGING = {
             'level': 'DEBUG',
             'propagate': True,
         },
+        'marker': {
+            'handlers': ['file', 'console'],
+            'level': 'DEBUG',
+            'propagate': True,
+        },
+        'disease': {
+            'handlers': ['file', 'console'],
+            'level': 'WARN',
+            'propagate': True,
+        },
         'pydgin_auth': {
             'handlers': ['file', 'console'],
             'level': 'DEBUG',
@@ -252,7 +274,7 @@ URL_LINKS = {
         },
     "ensembl":
         {
-            "link": "http://e77.ensembl.org/Homo_sapiens/geneview?gene=",
+            "link": "http://dec2015.archive.ensembl.org/Homo_sapiens/geneview?gene=",
             "about": "Ensembl project"
         }
 }

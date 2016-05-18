@@ -1,0 +1,82 @@
+{% extends "base.html" %}
+{% block title %}Terms &amp; Conditions{% endblock %} 
+{% block content %}
+
+<div class="container">
+	<h3>Copyright of ImmunoBase</h3>
+	<p>Copyright © {% now "Y" %} ImmunoBase. All rights reserved.</p>
+	<p>
+		ImmunoBase comprises a series of electronic documents and information
+		processing software, the reference copy of which currently resides at
+		the Internet address <a href="http://www.immunobase.org">http://www.immunobase.org</a>.
+	</p>
+	<p>
+		This publication is distributed under terms of the <a
+			href="http://www.fsf.org/licenses/gpl.html">GNU General Public
+			License (GPL)</a> at no charge. The GNU GPL is an open source license, as
+		that term is used by the <a href="http://www.opensource.org/">Open
+			Source Initiative</a>. We urge you to consult the full text of the <a
+			href="http://www.fsf.org/licenses/gpl.html">GNU General Public
+			License (GPL)</a> for the full list of rights granted to you therein.
+	</p>
+	<!--<p>Certain portions of ImmunoBase are copyrighted separately.  Most Perl code is distributed under 
+terms of the <a href="http://www.perl.com/pub/a/language/misc/Artistic.html">Perl Artistic License</a> which is also an open source license.  
+This notice does not preempt these separate copyrights.</p>-->
+	<p>All publicly visible data in ImmunoBase is open access by which
+		we mean it is covered by the GNU GPL. It is our policy to place all
+		publicly visible data on out FTP site in a form that is easy for
+		others to download.</p>
+	<!-- <p>ImmunoBase contains certain data that is not publicly visible. This includes data that users store in 
+their My ImmunoBase areas and unpublished data provided by contributors who have instructed us to keep 
+the data confidential until published.</p>
+<p>Data stored in a user's My ImmunoBase area is considered to be private to the user and will not be 
+revealed to others unless the user explicitly grants permission to do so.</p> -->
+	<p>Unpublished data submitted to ImmunoBase will be kept
+		confidential until the submitter gives permission for the data to be
+		made public or upon publication. Until such data is made public, it
+		will only be available to ImmunoBase staff who require access to
+		prepare the data for inclusion in the database and eventual release to
+		the public. Neither the data nor any information about the data
+		(including its existence) will be revealed to anyone who may gain
+		scientific advantage from early access to this information. We
+		recognize that individuals and groups based in the same institutions
+		as ImmunoBase or collaborating with ImmunoBase personnel are likely to
+		be scientific competitors of some data submitters. Special care will
+		be taken in such cases to avoid even the appearance of improper
+		information access.</p>
+	<p>Standard technical means will be employed to prevent access to
+		private data by unauthorized individuals, including the use of
+		encrypted logins to control access to private data.</p>
+	<h3>Warranty</h3>
+	<p>ImmunoBase, its contributors and Juvenile Diabetes Research
+		Foundation and Wellcome Trust make no warranty of any kind with
+		respect to the subject matter included herein. ImmunoBase, its
+		contributors and Juvenile Diabetes Research Foundation and Wellcome
+		Trust specifically disclaim all warranties, expressed, implied or
+		otherwise, including without limitation, all warranties of
+		merchantability, fitness for a particular purpose, or
+		non-infringement.</p>
+	<p>The information contained in this publication is subject to
+		change without notice.</p>
+	<p>By viewing or using this information the user agrees that in no
+		event shall ImmunoBase, its contributors or Juvenile Diabetes Research
+		Foundation and Wellcome Trust be liable for any special, incidental,
+		indirect, or consequential damages of any kind, or any damages
+		whatsoever, whether or not advised of the possibility of damage,
+		arising out of or in connection with the use or performance of this
+		information.</p>
+	<h3>Disclaimer</h3>
+	<p>Information in ImmunoBase is curated from the scientific
+		literature, including unrefereed sources such as abstracts, reviews,
+		and personal communications. Statements of fact are not vetted by
+		ImmunoBase. Users should remember that published information is not
+		always correct information and are encouraged to use ImmunoBase as a
+		guide to the literature rather than as a substitute for it.</p>
+
+	<h3>Data Access Agreement</h3>
+		<div style="overflow: auto; height : 500px; background-color: #D3D3D3; padding: 10px 25px;">
+		{% include "data_access_agreement.html" %}
+		</div>
+</div>
+
+{% endblock %}

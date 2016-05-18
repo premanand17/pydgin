@@ -1,31 +1,19 @@
-<!doctype html>
-<html>
-<head>
-	<meta charset="utf-8">
-	<title>Gene Page</title>
+{% extends "sections.html" %}
+{% block staticfiles %}
+	{% load staticfiles %}
+	<script src={% static "js/sections.js" %}></script>
+	<script src={% static "gene/gene_page.js" %}></script>
 
-	<script type="text/javascript" src="//code.jquery.com/jquery-2.1.4.min.js"></script>
-    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/css/bootstrap.min.css">
-    <link rel="stylesheet" href="//maxcdn.bootstrapcdn.com/font-awesome/4.3.0/css/font-awesome.min.css">      
-    <link rel="stylesheet" href="//code.jquery.com/ui/1.11.4/themes/smoothness/jquery-ui.css">
- 
-	<link rel="stylesheet" href="//cdn.datatables.net/1.10.8/css/dataTables.bootstrap.min.css">
-	<link rel="stylesheet" href="//cdn.datatables.net/responsive/1.0.7/css/responsive.dataTables.min.css">
+	<link rel="stylesheet" href="{{ CDN.QUNIT_CSS }}">
+  	<script src="{{ CDN.QUNIT }}"></script>
 
-	<script src="//cdn.datatables.net/1.10.8/js/jquery.dataTables.min.js"></script>
-	<script src="//cdn.datatables.net/responsive/1.0.7/js/dataTables.responsive.min.js"></script>
-	<script src="//cdn.datatables.net/1.10.8/js/dataTables.bootstrap.min.js"></script>
-	<script src="/static/gene/gene_page.js"></script>
-    
-    <script src="/static/js/pydgin_utils.js" charset="utf-8"></script>
-    
-    <link rel="stylesheet" href="//code.jquery.com/qunit/qunit-1.19.0.css">
-  	<script src="//code.jquery.com/qunit/qunit-1.19.0.js"></script>
+{% endblock %}
+{% block sections %}
 
-	<script>
+<script>
 	QUnit.test("gene studies publications genesets interactions", function( assert ) {
 		assert.equal($('#table-pubs-ENSG00000134242 tbody').children().length, 0);
-		gene_page.get_publication_details("table-pubs-ENSG00000134242", ["25814225"]);
+		sections.get_publication_details("table-pubs-ENSG00000134242", ["25814225"]);
 		gene_page.get_genesets_details("ENSG00000134242");
 		gene_page.get_interaction_details("ENSG00000134242");
 		gene_page.get_study_details("ENSG00000134242");
@@ -33,15 +21,13 @@
 	    setTimeout(function() {
 	       assert.equal($('#table-pubs-ENSG00000134242').dataTable().fnGetData().length, 1);
 	       assert.equal($('#table-genesets-ENSG00000134242').dataTable().fnGetData().length, 15);
-	       assert.equal($('#table-interactor-ENSG00000134242').dataTable().fnGetData().length, 17);
-	       assert.equal($('#table-study-ENSG00000134242').dataTable().fnGetData().length, 15);
+	       assert.equal($('#table-interactor-ENSG00000134242').dataTable().fnGetData().length, 18);
+	       assert.equal($('#table-study-ENSG00000134242').dataTable().fnGetData().length, 16);
 	       // restart the test
 	       start();
-	    }, 500);
+	    }, 1200);
 	});
-	</script>
-</head>
-<body>
+</script>
 
 <div id="qunit"></div>
 
@@ -81,7 +67,6 @@
 	<tbody></tbody>
 </table>
 
-
 <table id="table-study-ENSG00000134242">
 	<thead>
 		<tr>
@@ -101,12 +86,4 @@
 </table>
 
 </div>
-
-
-    <!-- Bootstrap core JavaScript
-    ================================================== -->
-    <!-- Placed at the end of the document so the pages load faster -->
-    <script src="//code.jquery.com/ui/1.11.4/jquery-ui.js"></script>
-    <script src="//cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.3.5/js/bootstrap.min.js"></script>
-</body>
-</html>
+{% endblock %}

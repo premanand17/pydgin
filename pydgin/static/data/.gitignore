@@ -1,0 +1,13 @@
+/igv/
+/cytoBand.txt.gz
+/gencode.v21.collapsed.bed
+/gencode.v21.collapsed.bed.idx
+/hg38_gwas_ic_cro_liu.gwas
+/hg38.fasta
+/hg38.fasta.fai
+/hg38-disease_locus.gff
+/hg38-disease_locus.gff.idx
+/hg38-regions.gff
+/hg38-regions.gff.idx
+/igv.log
+/rs2476601.gwas

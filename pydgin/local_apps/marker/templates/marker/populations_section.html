@@ -1,0 +1,127 @@
+{% extends "section.html" %}
+{% block section_js %}
+{% load filter_tags %}
+<script src="//d3js.org/d3.v3.min.js" charset="utf-8"></script>
+<script>
+	$(document).ready(function() {
+		var marker = '{{ f|doc_attr:"id" }}';
+    	var url = "/rest/populations/";
+	    $.ajax({
+	    	type: "GET",
+	    	url: url,
+	    	data: {'marker': marker},
+	    	success: function(jsonObj) {
+	    		var pops = ['EUR', 'GBR', 'IBS', 'TSI', 'CEU', 'FIN'];
+	    		var res = jsonObj[0]['populations'];
+	    		console.log(res);
+    			$.each(res, function( index, pop_res ) {
+    				if (pops.indexOf(pop_res['population']) >= 0){
+    					if (pop_res['population'] == 'EUR'){
+    						$('#pops-'+marker+'-EUR').append('<div class="col-sm-12" id="pops-'+marker+'-EUR-svg"></div>');
+    						drawPieChart(marker, pop_res['population'], pop_res['major'], pop_res['minor'], pop_res['MAF'], 100);
+    					}
+    					else{
+    						$('#pops-'+marker+'-'+pop_res['population']).append('<div class="col-sm-12 col-md-6 col-lg-4" id="pops-'+marker+'-'+pop_res['population']+'-svg"></div>');
+    						drawPieChart(marker, pop_res['population'], pop_res['major'], pop_res['minor'], pop_res['MAF'], 50);
+    					}
+    				}
+    			});
+	    	},
+	    	error: function(jqXHR, textStatus, errorThrown) {
+	    		$("#"+ld_result_id).html('PROBLEM CONNECTING: '+errorThrown);
+	    	}
+	    });
+	});
+	
+	function drawPieChart(marker, pop, maj, min, maf, size){
+		//Width and height
+		var w = 300;
+		var h = size;
+		var padding = 10
+		var r = padding/2
+		
+		var colors = {'A':'green', 'C':'blue', 'G':'yellow', 'T':'red'}
+		var data = [{"label":maj, "value":(100*(1-maf)).toFixed(1)}, {"label":min, "value":(100*maf).toFixed(1)}];
+		//console.log(data)
+
+		var outerRadius = size / 2;
+		var innerRadius = 0;
+		var arc = d3.svg.arc()
+						.innerRadius(innerRadius)
+						.outerRadius(outerRadius);
+		
+		var pie = d3.layout.pie();
+
+		//Create SVG element
+		var svg = d3.select('#pops-'+marker+'-'+pop+'-svg')
+			.append("svg")
+			.data([data])
+			.attr("width", w)
+			.attr("height", h)		
+
+		var pieData = d3.layout.pie().value(function(d){return d.value;});
+		
+		//Set up groups
+		var arcs = svg.selectAll("g.arc")
+					  .data(pieData)
+					  .enter()
+					  .append("g")
+					  .attr("class", "arc")
+					  .attr("transform", "translate(" + (size+padding) + "," + outerRadius + ")");
+		
+		//Draw arc paths
+		arcs.append("path")
+		    .attr("fill", function(d, i) {
+		    	return colors[data[i].label];
+		    })
+		    .attr("d", arc);
+		
+		//Population title
+		svg.selectAll("g#title").data([pop]).enter().append("g").attr("id", "title").attr("transform", "translate(0,"+2*padding+")")
+			.append("text").text(function(d){ return d; }).style("font-weight", "bold");
+		
+		//Alleles & Freqs
+		var alleles = svg.selectAll("g.alleles").data(data).enter().append("g").attr("class", "alleles");		
+		var circles = svg.selectAll("circle").data(data).enter().append("circle");
+		
+		if (size >= 80){
+			alleles.append("text").attr("x", 2*(padding+size)).attr("y", function(d,i){ return (i+1)*(2*padding+r); }).text(function(d){ return d.label+": "+d.value+"%"; });
+			var circleAttributes = circles
+				.attr("cx", (2*size)+padding)
+				.attr("cy", function(d,i){ return (i+1)*2*padding+(i*r); })
+				.attr("r", r)
+				.style("fill", function (d) { return colors[d.label] });
+		}
+		else{
+			alleles.append("text").attr("x", function(d,i){ return (2+i)*size+padding+(i*size)+padding;} ).attr("y", (2*padding+r)).text(function(d){ return d.label+": "+d.value+"%"; });
+			var circleAttributes = circles
+				.attr("cx", function(d,i){ return (2+i)*size+padding+(i*size); })
+				.attr("cy", 2*padding)
+				.attr("r", r)
+				.style("fill", function (d) { return colors[d.label] });
+			
+		}
+	}
+	</script>
+{% endblock %}
+
+
+{% block section %}
+{% if f %}
+	<div>
+	<p>Populations data from Ensembl 1000 Genome data release <a href="ftp://ftp.1000genomes.ebi.ac.uk/vol1/ftp/release/20130502/" target="_blank">May 2013</a>:</p>
+	<div class="row">
+		<div class="col-md-4 col-lg-3 col-sm-12" id='pops-{{ f|doc_attr:"id" }}-EUR'></div>
+		<div class="col-md-8 col-lg-9 col-sm-12" id='pops-{{ f|doc_attr:"id" }}'>
+			<div id="pops-{{ f|doc_attr:"id" }}-GBR"></div>
+			<div id="pops-{{ f|doc_attr:"id" }}-IBS"></div>
+			<div id="pops-{{ f|doc_attr:"id" }}-TSI"></div>
+			<div id="pops-{{ f|doc_attr:"id" }}-CEU"></div>
+			<div id="pops-{{ f|doc_attr:"id" }}-FIN"></div>
+		</div>
+	</div>
+	</div>
+{% else %}
+	N/A
+{% endif %}
+{% endblock %}

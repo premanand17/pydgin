@@ -1,0 +1,28 @@
+{% extends "sections.html" %}
+{% block header_js %}
+	{% load staticfiles %}
+	<script src={% static "marker/ld.js" %}></script>
+
+	<link rel="stylesheet" href="{{ CDN.QUNIT_CSS }}">
+  	<script src="{{ CDN.QUNIT }}"></script>
+
+	<script>
+		QUnit.test("LD search", function( assert ) {
+			ld.run("rs2476601", "m1=rs2476601&build=GRCh38&dataset=--EUR--&rsq=0.8&dprime=0&window_size=1000000", 'ld_result');
+		    var done = assert.async();
+		    setTimeout(function() {
+		    	var id = $('#ld_result').find('table').attr('id');
+	
+		    	assert.ok(id !== undefined); // table found
+		    	assert.ok($('#'+id).dataTable().fnGetData().length > 0);
+		       // restart the test
+	 	       done();
+		    }, 1000);
+		});
+	</script>
+{% endblock %}
+
+{% block sections %}
+	<div id="qunit"></div>
+	<div class="hidden" id="ld_result"></div>
+{% endblock %}
